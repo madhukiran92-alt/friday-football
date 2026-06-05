@@ -8,7 +8,9 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.madhukiran.fridayfootball",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
