@@ -1,1 +1,3 @@
-# friday-football
+# Friday Football
+
+A project by Madhukiran.
