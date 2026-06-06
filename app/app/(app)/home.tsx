@@ -25,7 +25,7 @@ export default function HomeScreen() {
     const { data: gamesData } = await supabase
       .from('games')
       .select('*')
-      .in('status', ['open', 'closed'])
+      .in('status', ['open', 'closed', 'completed'])
       .gte('scheduled_at', new Date().toISOString())
       .order('scheduled_at', { ascending: true });
 
@@ -98,6 +98,22 @@ export default function HomeScreen() {
         },
       },
     ]);
+  }
+
+  async function cancelGame(game: GameWithRegs) {
+    Alert.alert(
+      'Cancel game?',
+      `This will cancel "${game.title}" and notify all players.`,
+      [
+        { text: 'Keep it', style: 'cancel' },
+        {
+          text: 'Cancel Game', style: 'destructive', onPress: async () => {
+            await supabase.from('games').update({ status: 'cancelled' }).eq('id', game.id);
+            await fetchGames();
+          },
+        },
+      ]
+    );
   }
 
   async function promoteFromWaitlist(gameId: string, vacatedPosition: number, maxPlayers: number) {
@@ -217,6 +233,13 @@ export default function HomeScreen() {
                 <Text style={styles.actionBtnText}>View Teams</Text>
               </TouchableOpacity>
             )}
+
+            {/* Admin cancel button */}
+            {isAdmin && game.status === 'open' && (
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => cancelGame(game)}>
+                <Text style={styles.cancelBtnText}>Cancel Game</Text>
+              </TouchableOpacity>
+            )}
           </View>
         ))
       )}
@@ -258,4 +281,6 @@ const styles = StyleSheet.create({
   playerIndex: { width: 24, fontSize: 13, color: '#9ca3af', fontWeight: '600' },
   playerName: { flex: 1, fontSize: 14, color: '#111827' },
   youBadge: { fontSize: 11, fontWeight: '700', color: '#16a34a', backgroundColor: '#dcfce7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  cancelBtn: { marginTop: 8, borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#ef4444' },
+  cancelBtnText: { color: '#ef4444', fontSize: 14, fontWeight: '600' },
 });
