@@ -90,23 +90,25 @@ export default function EditGameScreen() {
             <Text style={styles.pickerBtnText}>{formatDate(scheduledAt)}</Text>
           </TouchableOpacity>
           {showDatePicker && (
-            <View style={styles.pickerContainer}>
-              <DateTimePicker
-                value={scheduledAt}
-                mode="date"
-                display="spinner"
-                onChange={(_, date) => {
-                  if (date) {
-                    const updated = new Date(scheduledAt);
-                    updated.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
-                    setScheduledAt(updated);
-                  }
-                }}
-              />
+            <>
+              <View style={styles.pickerContainer}>
+                <DateTimePicker
+                  value={scheduledAt}
+                  mode="date"
+                  display="spinner"
+                  onChange={(_, date) => {
+                    if (date) {
+                      const updated = new Date(scheduledAt);
+                      updated.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+                      setScheduledAt(updated);
+                    }
+                  }}
+                />
+              </View>
               <TouchableOpacity style={styles.doneBtn} onPress={() => setShowDatePicker(false)}>
                 <Text style={styles.doneBtnText}>Done</Text>
               </TouchableOpacity>
-            </View>
+            </>
           )}
 
           <Text style={styles.label}>Time *</Text>
@@ -114,23 +116,25 @@ export default function EditGameScreen() {
             <Text style={styles.pickerBtnText}>{formatTime(scheduledAt)}</Text>
           </TouchableOpacity>
           {showTimePicker && (
-            <View style={styles.pickerContainer}>
-              <DateTimePicker
-                value={scheduledAt}
-                mode="time"
-                display="spinner"
-                onChange={(_, date) => {
-                  if (date) {
-                    const updated = new Date(scheduledAt);
-                    updated.setHours(date.getHours(), date.getMinutes());
-                    setScheduledAt(updated);
-                  }
-                }}
-              />
+            <>
+              <View style={styles.pickerContainer}>
+                <DateTimePicker
+                  value={scheduledAt}
+                  mode="time"
+                  display="spinner"
+                  onChange={(_, date) => {
+                    if (date) {
+                      const updated = new Date(scheduledAt);
+                      updated.setHours(date.getHours(), date.getMinutes());
+                      setScheduledAt(updated);
+                    }
+                  }}
+                />
+              </View>
               <TouchableOpacity style={styles.doneBtn} onPress={() => setShowTimePicker(false)}>
                 <Text style={styles.doneBtnText}>Done</Text>
               </TouchableOpacity>
-            </View>
+            </>
           )}
 
           <Text style={styles.label}>Max players</Text>
@@ -165,7 +169,7 @@ const styles = StyleSheet.create({
   input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d1d5db', borderRadius: 10, padding: 14, fontSize: 15 },
   pickerBtn: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d1d5db', borderRadius: 10, padding: 14 },
   pickerBtnText: { fontSize: 15, color: '#111827' },
-  pickerContainer: { backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#e5e7eb', marginTop: 4 },
+  pickerContainer: { backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#e5e7eb', marginTop: 4, height: 220 },
   doneBtn: { alignItems: 'flex-end', padding: 12, borderTopWidth: 1, borderColor: '#e5e7eb' },
   doneBtnText: { color: '#16a34a', fontWeight: '700', fontSize: 16 },
   button: { backgroundColor: '#16a34a', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 24 },
