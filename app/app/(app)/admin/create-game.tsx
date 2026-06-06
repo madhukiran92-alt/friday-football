@@ -124,42 +124,52 @@ export default function CreateGameScreen() {
           <TextInput style={styles.input} placeholder="e.g. Victoria Park" value={location} onChangeText={setLocation} />
 
           <Text style={styles.label}>Date *</Text>
-          <TouchableOpacity style={styles.pickerBtn} onPress={() => setShowDatePicker(true)}>
+          <TouchableOpacity style={styles.pickerBtn} onPress={() => { setShowDatePicker(v => !v); setShowTimePicker(false); }}>
             <Text style={styles.pickerBtnText}>{formatDate(scheduledAt)}</Text>
           </TouchableOpacity>
           {showDatePicker && (
-            <DateTimePicker
-              value={scheduledAt}
-              mode="date"
-              minimumDate={new Date()}
-              onChange={(_, date) => {
-                setShowDatePicker(false);
-                if (date) {
-                  const updated = new Date(scheduledAt);
-                  updated.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
-                  setScheduledAt(updated);
-                }
-              }}
-            />
+            <View style={styles.pickerContainer}>
+              <DateTimePicker
+                value={scheduledAt}
+                mode="date"
+                display="spinner"
+                minimumDate={new Date()}
+                onChange={(_, date) => {
+                  if (date) {
+                    const updated = new Date(scheduledAt);
+                    updated.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+                    setScheduledAt(updated);
+                  }
+                }}
+              />
+              <TouchableOpacity style={styles.doneBtn} onPress={() => setShowDatePicker(false)}>
+                <Text style={styles.doneBtnText}>Done</Text>
+              </TouchableOpacity>
+            </View>
           )}
 
           <Text style={styles.label}>Time *</Text>
-          <TouchableOpacity style={styles.pickerBtn} onPress={() => setShowTimePicker(true)}>
+          <TouchableOpacity style={styles.pickerBtn} onPress={() => { setShowTimePicker(v => !v); setShowDatePicker(false); }}>
             <Text style={styles.pickerBtnText}>{formatTime(scheduledAt)}</Text>
           </TouchableOpacity>
           {showTimePicker && (
-            <DateTimePicker
-              value={scheduledAt}
-              mode="time"
-              onChange={(_, date) => {
-                setShowTimePicker(false);
-                if (date) {
-                  const updated = new Date(scheduledAt);
-                  updated.setHours(date.getHours(), date.getMinutes());
-                  setScheduledAt(updated);
-                }
-              }}
-            />
+            <View style={styles.pickerContainer}>
+              <DateTimePicker
+                value={scheduledAt}
+                mode="time"
+                display="spinner"
+                onChange={(_, date) => {
+                  if (date) {
+                    const updated = new Date(scheduledAt);
+                    updated.setHours(date.getHours(), date.getMinutes());
+                    setScheduledAt(updated);
+                  }
+                }}
+              />
+              <TouchableOpacity style={styles.doneBtn} onPress={() => setShowTimePicker(false)}>
+                <Text style={styles.doneBtnText}>Done</Text>
+              </TouchableOpacity>
+            </View>
           )}
 
           <Text style={styles.label}>Max players</Text>
@@ -222,6 +232,9 @@ const styles = StyleSheet.create({
   input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d1d5db', borderRadius: 10, padding: 14, fontSize: 15 },
   pickerBtn: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d1d5db', borderRadius: 10, padding: 14 },
   pickerBtnText: { fontSize: 15, color: '#111827' },
+  pickerContainer: { backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#e5e7eb', marginTop: 4, overflow: 'hidden' },
+  doneBtn: { alignItems: 'flex-end', padding: 12, borderTopWidth: 1, borderColor: '#e5e7eb' },
+  doneBtnText: { color: '#16a34a', fontWeight: '700', fontSize: 16 },
   searchResult: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: '#fff', padding: 12, borderBottomWidth: 1, borderColor: '#e5e7eb' },
   searchResultText: { fontSize: 15, color: '#111827' },
   searchResultAdd: { fontSize: 14, color: '#16a34a', fontWeight: '700' },
