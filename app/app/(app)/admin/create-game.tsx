@@ -85,7 +85,7 @@ export default function CreateGameScreen() {
       position: i + 1,
       added_by: profile!.id,
     }));
-    await supabase.from('registrations').insert(regs);
+    await supabase.from('registrations').upsert(regs, { onConflict: 'game_id,profile_id' });
 
     setLoading(false);
     Alert.alert('Game created!', `${title} has been scheduled.`, [
