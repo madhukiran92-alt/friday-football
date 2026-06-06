@@ -3,12 +3,13 @@ import {
   View, Text, TouchableOpacity, StyleSheet,
   Alert, ScrollView, ActivityIndicator,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { supabase } from '../../../src/lib/supabase';
 import { useAuth } from '../../../src/context/AuthContext';
 import { Game, Registration } from '../../../src/lib/types';
 
 export default function GenerateTeamsScreen() {
+  const { gameId: preselectedGameId } = useLocalSearchParams<{ gameId?: string }>();
   const { profile } = useAuth();
   const [games, setGames] = useState<Game[]>([]);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
@@ -24,7 +25,13 @@ export default function GenerateTeamsScreen() {
         .select('*')
         .in('status', ['open', 'closed'])
         .order('scheduled_at', { ascending: false });
-      setGames(data ?? []);
+      const list = data ?? [];
+      setGames(list);
+      // Pre-select if gameId was passed in params
+      if (preselectedGameId) {
+        const preselected = list.find(g => g.id === preselectedGameId);
+        if (preselected) selectGame(preselected);
+      }
       setLoading(false);
     }
     fetchGames();
