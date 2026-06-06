@@ -1,13 +1,18 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  Alert, KeyboardAvoidingView, Platform, StatusBar, SafeAreaView,
+} from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';
 import { useAuth } from '../../src/context/AuthContext';
+import { C } from '../../src/lib/theme';
 
 export default function NameScreen() {
   const { session, refreshProfile } = useAuth();
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [focused, setFocused] = useState(false);
 
   async function saveName() {
     if (!name.trim()) return;
@@ -17,39 +22,77 @@ export default function NameScreen() {
       .update({ name: name.trim() })
       .eq('id', session!.user.id);
     setLoading(false);
-    if (error) {
-      Alert.alert('Error', error.message);
-    } else {
-      await refreshProfile();
-      router.replace('/');
-    }
+    if (error) Alert.alert('Error', error.message);
+    else { await refreshProfile(); router.replace('/'); }
   }
 
+  const disabled = !name.trim() || loading;
+
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Text style={styles.title}>What's your name?</Text>
-      <Text style={styles.subtitle}>This is how you'll appear on the team list</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Your name"
-        value={name}
-        onChangeText={setName}
-        autoCapitalize="words"
-        autoFocus
-      />
-      <TouchableOpacity style={[styles.button, (!name.trim() || loading) && styles.buttonDisabled]} onPress={saveName} disabled={!name.trim() || loading}>
-        <Text style={styles.buttonText}>{loading ? 'Saving...' : "Let's go!"}</Text>
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
+    <View style={styles.root}>
+      <StatusBar barStyle="dark-content" />
+      <KeyboardAvoidingView style={styles.kav} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <SafeAreaView style={styles.safe}>
+          <View style={styles.logoSection}>
+            <View style={styles.logoCircle}>
+              <Text style={styles.logoEmoji}>👋</Text>
+            </View>
+          </View>
+
+          <View style={styles.form}>
+            <Text style={styles.formTitle}>What's your name?</Text>
+            <Text style={styles.formSub}>This is how you'll appear on the team list.</Text>
+            <TextInput
+              style={[styles.input, focused && styles.inputFocused]}
+              placeholder="e.g. Jamie Carragher"
+              placeholderTextColor={C.subtle}
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+              autoFocus
+              returnKeyType="done"
+              onSubmitEditing={saveName}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+            />
+            <TouchableOpacity
+              style={[styles.btn, disabled && styles.btnDisabled]}
+              onPress={saveName}
+              disabled={disabled}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.btnText}>{loading ? 'Saving…' : "Let's go →"}</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: '#fff' },
-  title: { fontSize: 28, fontWeight: '800', color: '#111827', marginBottom: 8, textAlign: 'center' },
-  subtitle: { fontSize: 15, color: '#6b7280', marginBottom: 40, textAlign: 'center' },
-  input: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 12, padding: 16, fontSize: 18, marginBottom: 16 },
-  button: { backgroundColor: '#16a34a', borderRadius: 12, padding: 16, alignItems: 'center' },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  root: { flex: 1, backgroundColor: C.surface },
+  kav: { flex: 1 },
+  safe: { flex: 1, paddingHorizontal: 28 },
+  logoSection: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  logoCircle: {
+    width: 88, height: 88, borderRadius: 26, backgroundColor: C.greenUltra,
+    alignItems: 'center', justifyContent: 'center', ...C.shadowMd,
+  },
+  logoEmoji: { fontSize: 42 },
+  form: { paddingBottom: 20 },
+  formTitle: { fontSize: 26, fontWeight: '800', color: C.inkSoft, letterSpacing: -0.4, marginBottom: 6 },
+  formSub: { fontSize: 15, color: C.muted, marginBottom: 24, lineHeight: 22 },
+  input: {
+    backgroundColor: C.bg, borderWidth: 1.5, borderColor: 'transparent',
+    borderRadius: C.rMd, paddingHorizontal: 16, paddingVertical: 15,
+    fontSize: 17, color: C.inkSoft, marginBottom: 14,
+  },
+  inputFocused: { borderColor: C.green, backgroundColor: C.surface },
+  btn: {
+    backgroundColor: C.green, borderRadius: C.rMd, paddingVertical: 16,
+    alignItems: 'center', ...C.shadowMd,
+  },
+  btnDisabled: { opacity: 0.4 },
+  btnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });

@@ -1,8 +1,19 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import {
+  View, Text, StyleSheet, ScrollView, ActivityIndicator,
+  TouchableOpacity, StatusBar, SafeAreaView,
+} from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';
 import { Team } from '../../src/lib/types';
+import { C } from '../../src/lib/theme';
+
+const PALETTES = [
+  { accent: C.green,   bg: C.greenUltra,   initial: C.greenLight,  initText: C.green },
+  { accent: C.indigo,  bg: C.indigoLight,  initial: C.indigoBorder, initText: C.indigo },
+  { accent: '#7c3aed', bg: '#f5f3ff',      initial: '#ede9fe',      initText: '#7c3aed' },
+  { accent: C.amber,   bg: C.amberLight,   initial: C.amberBorder,  initText: C.amber },
+];
 
 export default function TeamsScreen() {
   const { gameId } = useLocalSearchParams<{ gameId: string }>();
@@ -11,18 +22,11 @@ export default function TeamsScreen() {
 
   useEffect(() => {
     async function fetchTeams() {
-      const { data: teamsData } = await supabase
-        .from('teams')
-        .select('*')
-        .eq('game_id', gameId);
-
+      const { data: teamsData } = await supabase.from('teams').select('*').eq('game_id', gameId);
       if (!teamsData) { setLoading(false); return; }
-
       const enriched = await Promise.all(teamsData.map(async (team) => {
         const { data: members } = await supabase
-          .from('team_members')
-          .select('profile:profiles(id, name)')
-          .eq('team_id', team.id);
+          .from('team_members').select('profile:profiles(id, name)').eq('team_id', team.id);
         return { ...team, members: members?.map(m => (m.profile as any)) ?? [] };
       }));
       setTeams(enriched);
@@ -31,44 +35,98 @@ export default function TeamsScreen() {
     fetchTeams();
   }, [gameId]);
 
-  if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color="#16a34a" />;
-
-  const colors = ['#dcfce7', '#dbeafe', '#fef9c3', '#fce7f3'];
-  const textColors = ['#16a34a', '#2563eb', '#d97706', '#9333ea'];
+  if (loading) return (
+    <View style={styles.loading}><ActivityIndicator size="large" color={C.green} /></View>
+  );
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.back}>
-          <Text style={styles.backText}>← Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Teams</Text>
-      </View>
-      {teams.map((team, i) => (
-        <View key={team.id} style={[styles.teamCard, { backgroundColor: colors[i % colors.length] }]}>
-          <Text style={[styles.teamName, { color: textColors[i % textColors.length] }]}>{team.name}</Text>
-          {(team.members ?? []).map((m: any, j: number) => (
-            <View key={m.id} style={styles.memberRow}>
-              <Text style={styles.memberIndex}>{j + 1}.</Text>
-              <Text style={styles.memberName}>{m.name}</Text>
-            </View>
-          ))}
+    <View style={styles.root}>
+      <StatusBar barStyle="light-content" />
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.nav}>
+          <TouchableOpacity onPress={() => router.back()} activeOpacity={0.6}>
+            <Text style={styles.navBack}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.navTitle}>Teams</Text>
+          <View style={{ width: 50 }} />
         </View>
-      ))}
-      <View style={{ height: 40 }} />
-    </ScrollView>
+      </SafeAreaView>
+
+      <ScrollView contentContainerStyle={styles.content}>
+        {teams.length === 0 ? (
+          <View style={styles.empty}>
+            <Text style={styles.emptyEmoji}>🎲</Text>
+            <Text style={styles.emptyText}>No teams generated yet.</Text>
+          </View>
+        ) : (
+          teams.map((team, i) => {
+            const p = PALETTES[i % PALETTES.length];
+            const members: any[] = (team as any).members ?? [];
+            return (
+              <View key={team.id} style={[styles.teamCard, { backgroundColor: p.bg }]}>
+                <View style={styles.teamCardHead}>
+                  <View style={[styles.teamNum, { backgroundColor: p.accent }]}>
+                    <Text style={styles.teamNumText}>{i + 1}</Text>
+                  </View>
+                  <Text style={[styles.teamName, { color: p.accent }]}>{team.name}</Text>
+                  <View style={[styles.teamCountBadge, { backgroundColor: p.initial }]}>
+                    <Text style={[styles.teamCountText, { color: p.initText }]}>{members.length} players</Text>
+                  </View>
+                </View>
+                <View style={styles.memberList}>
+                  {members.map((m: any) => (
+                    <View key={m.id} style={styles.memberRow}>
+                      <View style={[styles.memberInit, { backgroundColor: p.initial }]}>
+                        <Text style={[styles.memberInitText, { color: p.initText }]}>
+                          {m.name?.charAt(0).toUpperCase() ?? '?'}
+                        </Text>
+                      </View>
+                      <Text style={styles.memberName}>{m.name}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            );
+          })
+        )}
+        <View style={{ height: 32 }} />
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  header: { flexDirection: 'row', alignItems: 'center', padding: 20, paddingTop: 60, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#e5e7eb', gap: 12 },
-  back: {},
-  backText: { fontSize: 16, color: '#16a34a' },
-  title: { fontSize: 20, fontWeight: '800', color: '#111827' },
-  teamCard: { margin: 16, marginBottom: 8, borderRadius: 16, padding: 20 },
-  teamName: { fontSize: 18, fontWeight: '800', marginBottom: 12 },
-  memberRow: { flexDirection: 'row', marginBottom: 6 },
-  memberIndex: { width: 24, color: '#6b7280', fontWeight: '600' },
-  memberName: { fontSize: 15, color: '#111827' },
+  root: { flex: 1, backgroundColor: C.bg },
+  safe: { backgroundColor: C.greenDeep },
+  loading: { flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' },
+
+  nav: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingVertical: 12,
+    backgroundColor: C.greenDeep,
+  },
+  navBack: { fontSize: 15, color: C.greenLight, fontWeight: '600', width: 50 },
+  navTitle: { fontSize: 17, fontWeight: '700', color: '#ffffff' },
+
+  content: { padding: 16 },
+  empty: { alignItems: 'center', paddingTop: 80 },
+  emptyEmoji: { fontSize: 48, marginBottom: 12 },
+  emptyText: { fontSize: 16, color: C.muted },
+
+  teamCard: { borderRadius: C.rLg, marginBottom: 14, overflow: 'hidden', ...C.shadow },
+  teamCardHead: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    padding: 16, paddingBottom: 12,
+  },
+  teamNum: { width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  teamNumText: { fontSize: 14, fontWeight: '800', color: '#fff' },
+  teamName: { flex: 1, fontSize: 18, fontWeight: '800', letterSpacing: -0.2 },
+  teamCountBadge: { borderRadius: C.rFull, paddingHorizontal: 10, paddingVertical: 4 },
+  teamCountText: { fontSize: 12, fontWeight: '700' },
+
+  memberList: { paddingHorizontal: 16, paddingBottom: 14, gap: 8 },
+  memberRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  memberInit: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  memberInitText: { fontSize: 14, fontWeight: '700' },
+  memberName: { fontSize: 15, color: C.inkSoft, fontWeight: '500' },
 });

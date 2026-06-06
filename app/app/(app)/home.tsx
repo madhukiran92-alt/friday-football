@@ -2,11 +2,13 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   Alert, ActivityIndicator, ScrollView, RefreshControl,
+  StatusBar, SafeAreaView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';
 import { useAuth } from '../../src/context/AuthContext';
 import { Game, Registration } from '../../src/lib/types';
+import { C } from '../../src/lib/theme';
 
 type GameWithRegs = Game & {
   confirmed: Registration[];
@@ -22,17 +24,12 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [joiningId, setJoiningId] = useState<string | null>(null);
 
-  // Keep ref in sync so realtime callbacks always use latest profileId
-  useEffect(() => {
-    profileIdRef.current = profile?.id;
-  }, [profile?.id]);
+  useEffect(() => { profileIdRef.current = profile?.id; }, [profile?.id]);
 
   const fetchGames = useCallback(async () => {
     const profileId = profileIdRef.current;
-
     const { data: gamesData } = await supabase
-      .from('games')
-      .select('*')
+      .from('games').select('*')
       .in('status', ['open', 'closed', 'completed', 'cancelled'])
       .gte('scheduled_at', new Date().toISOString())
       .order('scheduled_at', { ascending: true });
@@ -45,7 +42,6 @@ export default function HomeScreen() {
         .select('*, profile:profiles(id, name)')
         .eq('game_id', game.id)
         .order('position', { ascending: true });
-
       const all = regs ?? [];
       return {
         ...game,
@@ -54,33 +50,23 @@ export default function HomeScreen() {
         myReg: profileId ? (all.find(r => r.profile_id === profileId) ?? null) : null,
       };
     }));
-
     setGames(enriched);
-  }, []); // stable reference — reads profileId via ref
+  }, []);
 
   async function load(isRefresh = false) {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
+    if (isRefresh) setRefreshing(true); else setLoading(true);
     await fetchGames();
-    if (isRefresh) setRefreshing(false);
-    else setLoading(false);
+    if (isRefresh) setRefreshing(false); else setLoading(false);
   }
 
-  // Load when profile is ready
   useEffect(() => {
-    if (profile?.id) {
-      profileIdRef.current = profile.id;
-      load();
-    }
+    if (profile?.id) { profileIdRef.current = profile.id; load(); }
   }, [profile?.id]);
 
-  // Realtime subscription — fetchGames is stable so no stale closure
   useEffect(() => {
     const channel = supabase
       .channel(`registrations-${Date.now()}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations' }, () => {
-        fetchGames();
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations' }, () => fetchGames())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [fetchGames]);
@@ -98,222 +84,356 @@ export default function HomeScreen() {
     if (!game.myReg) return;
     Alert.alert('Leave game?', 'Your spot will go to the next person on the waitlist.', [
       { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Leave', style: 'destructive', onPress: async () => {
-          const { error } = await supabase.rpc('leave_game', { p_registration_id: game.myReg!.id });
-          if (error) Alert.alert('Error', error.message);
-          await fetchGames();
-        },
-      },
+      { text: 'Leave', style: 'destructive', onPress: async () => {
+        const { error } = await supabase.rpc('leave_game', { p_registration_id: game.myReg!.id });
+        if (error) Alert.alert('Error', error.message);
+        await fetchGames();
+      }},
     ]);
   }
 
   async function cancelGame(game: GameWithRegs) {
     Alert.alert('Cancel game?', `This will cancel "${game.title}".`, [
       { text: 'Keep it', style: 'cancel' },
-      {
-        text: 'Cancel Game', style: 'destructive', onPress: async () => {
-          await supabase.from('games').update({ status: 'cancelled' }).eq('id', game.id);
-          await fetchGames();
-        },
-      },
+      { text: 'Cancel Game', style: 'destructive', onPress: async () => {
+        await supabase.from('games').update({ status: 'cancelled' }).eq('id', game.id);
+        await fetchGames();
+      }},
     ]);
   }
 
-  if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color="#16a34a" />;
+  if (loading) return (
+    <View style={styles.loadingWrap}>
+      <StatusBar barStyle="light-content" />
+      <ActivityIndicator size="large" color={C.green} />
+    </View>
+  );
+
+  const openCount = games.filter(g => g.status === 'open').length;
 
   return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor="#16a34a" />}
-    >
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Friday Football ⚽</Text>
-        <View style={styles.headerActions}>
-          {isAdmin && (
-            <TouchableOpacity style={styles.adminBtn} onPress={() => router.push('/(app)/admin')}>
-              <Text style={styles.adminBtnText}>Admin</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity style={styles.profileBtn} onPress={() => router.push('/(app)/profile')}>
-            <Text style={styles.profileBtnText}>👤</Text>
-          </TouchableOpacity>
+    <View style={styles.root}>
+      <StatusBar barStyle="light-content" />
+
+      {/* Deep green header */}
+      <View style={styles.headerBg}>
+        <SafeAreaView>
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.headerTitle}>Friday Football</Text>
+              <Text style={styles.headerSub}>
+                {openCount > 0 ? `${openCount} game${openCount !== 1 ? 's' : ''} open for signup` : 'No open games right now'}
+              </Text>
+            </View>
+            <View style={styles.headerActions}>
+              {isAdmin && (
+                <TouchableOpacity style={styles.adminPill} onPress={() => router.push('/(app)/admin')} activeOpacity={0.8}>
+                  <Text style={styles.adminPillText}>Admin</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity style={styles.avatarBtn} onPress={() => router.push('/(app)/profile')} activeOpacity={0.8}>
+                <Text style={styles.avatarBtnText}>{profile?.name?.charAt(0).toUpperCase() ?? '?'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+      </View>
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={C.green} />}
+      >
+        {games.length === 0 ? (
+          <View style={styles.empty}>
+            <Text style={styles.emptyEmoji}>⚽</Text>
+            <Text style={styles.emptyTitle}>No games scheduled</Text>
+            <Text style={styles.emptySub}>Games will appear here when they're created.</Text>
+            {isAdmin && (
+              <TouchableOpacity style={styles.createBtn} onPress={() => router.push('/(app)/admin')} activeOpacity={0.8}>
+                <Text style={styles.createBtnText}>Create a Game</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ) : (
+          games.map(game => (
+            <GameCard
+              key={game.id}
+              game={game}
+              profileId={profile?.id}
+              isAdmin={isAdmin}
+              joiningId={joiningId}
+              onJoin={joinGame}
+              onLeave={leaveGame}
+              onCancel={cancelGame}
+            />
+          ))
+        )}
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </View>
+  );
+}
+
+type CardProps = {
+  game: GameWithRegs;
+  profileId?: string;
+  isAdmin: boolean;
+  joiningId: string | null;
+  onJoin: (g: GameWithRegs) => void;
+  onLeave: (g: GameWithRegs) => void;
+  onCancel: (g: GameWithRegs) => void;
+};
+
+const STATUS_BADGE = {
+  open:      { bg: C.openBg,      text: C.openText      },
+  closed:    { bg: C.closedBg,    text: C.closedText    },
+  completed: { bg: C.completedBg, text: C.completedText },
+  cancelled: { bg: C.cancelledBg, text: C.cancelledText },
+} as const;
+
+function GameCard({ game, profileId, isAdmin, joiningId, onJoin, onLeave, onCancel }: CardProps) {
+  const isCancelled = game.status === 'cancelled';
+  const isFull = game.confirmed.length >= game.max_players;
+  const fillPct = Math.min(game.confirmed.length / game.max_players, 1);
+  const isJoining = joiningId === game.id;
+
+  const badge = STATUS_BADGE[game.status as keyof typeof STATUS_BADGE]
+    ?? { bg: C.bg, text: C.muted };
+
+  const statusLabel = game.status.charAt(0).toUpperCase() + game.status.slice(1);
+
+  const dateStr = new Date(game.scheduled_at).toLocaleString('en-AU', {
+    weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+  });
+
+  return (
+    <View style={[styles.card, isCancelled && styles.cardCancelled]}>
+
+      {/* Title + badge */}
+      <View style={styles.cardHead}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.cardTitle}>{game.title}</Text>
+          <Text style={styles.cardMeta}>
+            {game.location ? `📍 ${game.location}  ·  ` : ''}🗓 {dateStr}
+          </Text>
+        </View>
+        <View style={[styles.statusBadge, { backgroundColor: badge.bg }]}>
+          <Text style={[styles.statusBadgeText, { color: badge.text }]}>{statusLabel}</Text>
         </View>
       </View>
 
-      {games.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={styles.emptyText}>No games scheduled yet.</Text>
-          {isAdmin && (
-            <TouchableOpacity style={styles.createBtn} onPress={() => router.push('/(app)/admin')}>
-              <Text style={styles.createBtnText}>Create a Game</Text>
-            </TouchableOpacity>
-          )}
+      {/* Capacity bar */}
+      <View style={styles.capRow}>
+        <View style={styles.capTrack}>
+          <View style={[
+            styles.capFill,
+            { width: `${fillPct * 100}%` as any },
+            isFull && { backgroundColor: C.red },
+          ]} />
         </View>
-      ) : (
-        games.map(game => (
-          <View key={game.id} style={[styles.gameCard, game.status === 'cancelled' && styles.gameCardCancelled]}>
-            <View style={styles.gameTitleRow}>
-              <Text style={styles.gameTitle}>{game.title}</Text>
-              {game.status === 'cancelled' && (
-                <View style={styles.cancelledBadge}><Text style={styles.cancelledBadgeText}>Cancelled</Text></View>
-              )}
-            </View>
-            {game.location && <Text style={styles.gameMeta}>📍 {game.location}</Text>}
-            <Text style={styles.gameMeta}>
-              🗓 {new Date(game.scheduled_at).toLocaleString('en-AU', {
-                weekday: 'short', day: 'numeric', month: 'short',
-                hour: '2-digit', minute: '2-digit',
-              })}
-            </Text>
-
-            <View style={styles.spotsRow}>
-              <View style={[styles.spotsBadge, game.confirmed.length >= game.max_players && styles.spotsFull]}>
-                <Text style={[styles.spotsText, game.confirmed.length >= game.max_players && styles.spotsTextFull]}>
-                  {game.confirmed.length} / {game.max_players} players
-                </Text>
-              </View>
-              {game.waitlist.length > 0 && (
-                <View style={styles.waitlistBadge}>
-                  <Text style={styles.waitlistBadgeText}>{game.waitlist.length} on waitlist</Text>
-                </View>
-              )}
-            </View>
-
-            {/* Join / Leave */}
-            {game.status === 'open' && (
-              <TouchableOpacity
-                style={[
-                  styles.actionBtn,
-                  game.myReg ? styles.actionBtnLeave : styles.actionBtnJoin,
-                  joiningId === game.id && styles.actionBtnDisabled,
-                ]}
-                onPress={() => game.myReg ? leaveGame(game) : joinGame(game)}
-                disabled={joiningId === game.id}
-              >
-                <Text style={styles.actionBtnText}>
-                  {joiningId === game.id
-                    ? '...'
-                    : game.myReg
-                      ? game.myReg.status === 'waitlist' ? 'Leave Waitlist' : 'Leave Game'
-                      : game.confirmed.length >= game.max_players ? 'Join Waitlist' : 'Join Game'}
-                </Text>
-              </TouchableOpacity>
-            )}
-
-            {game.myReg?.status === 'waitlist' && (
-              <Text style={styles.waitlistPos}>
-                You're #{game.waitlist.findIndex(r => r.id === game.myReg!.id) + 1} on the waitlist
-              </Text>
-            )}
-
-            {/* Confirmed list */}
-            <Text style={styles.sectionTitle}>Confirmed ({game.confirmed.length})</Text>
-            {game.confirmed.map((r, i) => (
-              <View key={r.id} style={[styles.playerRow, r.profile_id === profile?.id && styles.playerRowMe]}>
-                <Text style={styles.playerIndex}>{i + 1}</Text>
-                <Text style={styles.playerName}>{(r.profile as any)?.name ?? 'Unknown'}</Text>
-                {r.profile_id === profile?.id && <Text style={styles.youBadge}>You</Text>}
-              </View>
-            ))}
-
-            {/* Waitlist */}
-            {game.waitlist.length > 0 && (
-              <>
-                <Text style={styles.sectionTitle}>Waitlist ({game.waitlist.length})</Text>
-                {game.waitlist.map((r, i) => (
-                  <View key={r.id} style={[styles.playerRow, styles.playerRowWait, r.profile_id === profile?.id && styles.playerRowMe]}>
-                    <Text style={styles.playerIndex}>{i + 1}</Text>
-                    <Text style={styles.playerName}>{(r.profile as any)?.name ?? 'Unknown'}</Text>
-                    {r.profile_id === profile?.id && <Text style={styles.youBadge}>You</Text>}
-                  </View>
-                ))}
-              </>
-            )}
-
-            {/* View teams */}
-            {game.status === 'completed' && (
-              <TouchableOpacity
-                style={[styles.actionBtn, styles.actionBtnJoin, { marginTop: 12 }]}
-                onPress={() => router.push({ pathname: '/(app)/teams', params: { gameId: game.id } })}
-              >
-                <Text style={styles.actionBtnText}>View Teams</Text>
-              </TouchableOpacity>
-            )}
-
-            {/* Admin actions */}
-            {isAdmin && game.status !== 'cancelled' && (
-              <View style={styles.adminActions}>
-                <TouchableOpacity
-                  style={styles.adminActionBtn}
-                  onPress={() => router.push({ pathname: '/(app)/admin/manage-game', params: { gameId: game.id } })}
-                >
-                  <Text style={styles.adminActionBtnText}>Manage Players</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.adminActionBtn}
-                  onPress={() => router.push({ pathname: '/(app)/admin/edit-game', params: { gameId: game.id } })}
-                >
-                  <Text style={styles.adminActionBtnText}>Edit</Text>
-                </TouchableOpacity>
-                {game.status === 'open' && (
-                  <TouchableOpacity style={[styles.adminActionBtn, styles.adminActionBtnDanger]} onPress={() => cancelGame(game)}>
-                    <Text style={[styles.adminActionBtnText, styles.adminActionBtnTextDanger]}>Cancel</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            )}
+        <Text style={[styles.capLabel, isFull && { color: C.red }]}>
+          {game.confirmed.length} / {game.max_players}
+        </Text>
+        {game.waitlist.length > 0 && (
+          <View style={styles.waitBadge}>
+            <Text style={styles.waitBadgeText}>+{game.waitlist.length} waiting</Text>
           </View>
-        ))
+        )}
+      </View>
+
+      {/* Waitlist position */}
+      {game.myReg?.status === 'waitlist' && (
+        <View style={styles.waitBanner}>
+          <Text style={styles.waitBannerText}>
+            ⏳  You're #{game.waitlist.findIndex(r => r.id === game.myReg!.id) + 1} on the waitlist
+          </Text>
+        </View>
       )}
-      <View style={{ height: 40 }} />
-    </ScrollView>
+
+      {/* Join / Leave */}
+      {game.status === 'open' && (
+        <TouchableOpacity
+          style={[styles.actionBtn, game.myReg ? styles.actionLeave : styles.actionJoin, isJoining && styles.actionDisabled]}
+          onPress={() => game.myReg ? onLeave(game) : onJoin(game)}
+          disabled={isJoining}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.actionText, game.myReg && styles.actionTextLeave]}>
+            {isJoining ? '…' : game.myReg
+              ? (game.myReg.status === 'waitlist' ? 'Leave Waitlist' : 'Leave Game')
+              : (isFull ? 'Join Waitlist' : 'Join Game')}
+          </Text>
+        </TouchableOpacity>
+      )}
+
+      {game.status === 'completed' && (
+        <TouchableOpacity
+          style={[styles.actionBtn, styles.actionJoin]}
+          onPress={() => router.push({ pathname: '/(app)/teams', params: { gameId: game.id } })}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.actionText}>View Teams</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Player chips */}
+      <PlayerList title="Confirmed" players={game.confirmed} myId={profileId} variant="confirmed" />
+      {game.waitlist.length > 0 && (
+        <PlayerList title="Waitlist" players={game.waitlist} myId={profileId} variant="waitlist" />
+      )}
+
+      {/* Admin actions */}
+      {isAdmin && !isCancelled && (
+        <View style={styles.adminRow}>
+          <AdminChip label="Manage Players" onPress={() => router.push({ pathname: '/(app)/admin/manage-game', params: { gameId: game.id } })} />
+          <AdminChip label="Edit" onPress={() => router.push({ pathname: '/(app)/admin/edit-game', params: { gameId: game.id } })} />
+          {game.status === 'open' && <AdminChip label="Cancel" danger onPress={() => onCancel(game)} />}
+        </View>
+      )}
+    </View>
+  );
+}
+
+function PlayerList({ title, players, myId, variant }: {
+  title: string; players: any[]; myId?: string; variant: 'confirmed' | 'waitlist';
+}) {
+  if (players.length === 0) return null;
+  return (
+    <View style={styles.playerSection}>
+      <Text style={styles.playerLabel}>{title} <Text style={styles.playerCount}>{players.length}</Text></Text>
+      <View style={styles.playerGrid}>
+        {players.map(r => {
+          const name = (r.profile as any)?.name ?? '?';
+          const isMe = r.profile_id === myId;
+          const isWait = variant === 'waitlist';
+          return (
+            <View key={r.id} style={[
+              styles.playerChip,
+              isWait && styles.playerChipWait,
+              isMe && styles.playerChipMe,
+            ]}>
+              <View style={[styles.playerInit, isWait && styles.playerInitWait, isMe && styles.playerInitMe]}>
+                <Text style={[styles.playerInitTxt, isMe && styles.playerInitTxtMe]}>
+                  {name.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+              <Text style={[styles.playerName, isMe && styles.playerNameMe]} numberOfLines={1}>{name}</Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function AdminChip({ label, onPress, danger }: { label: string; onPress: () => void; danger?: boolean }) {
+  return (
+    <TouchableOpacity style={[styles.adminChip, danger && styles.adminChipDanger]} onPress={onPress} activeOpacity={0.7}>
+      <Text style={[styles.adminChipText, danger && styles.adminChipTextDanger]}>{label}</Text>
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, paddingTop: 60, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
-  headerTitle: { fontSize: 22, fontWeight: '800', color: '#16a34a' },
-  headerActions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  adminBtn: { backgroundColor: '#dcfce7', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 },
-  adminBtnText: { color: '#16a34a', fontWeight: '700', fontSize: 13 },
-  profileBtn: { backgroundColor: '#f3f4f6', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
-  profileBtnText: { fontSize: 16 },
-  empty: { alignItems: 'center', padding: 60 },
-  emptyText: { fontSize: 18, color: '#6b7280', marginBottom: 20 },
-  createBtn: { backgroundColor: '#16a34a', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12 },
+  root: { flex: 1, backgroundColor: C.bg },
+  loadingWrap: { flex: 1, backgroundColor: C.greenDeep, alignItems: 'center', justifyContent: 'center' },
+
+  // Deep green header
+  headerBg: { backgroundColor: C.greenDeep },
+  header: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: 20, paddingTop: 8, paddingBottom: 20,
+  },
+  headerTitle: { fontSize: 26, fontWeight: '800', color: '#ffffff', letterSpacing: -0.5, marginBottom: 3 },
+  headerSub: { fontSize: 13, color: 'rgba(255,255,255,0.65)' },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  adminPill: {
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
+    borderRadius: C.rFull, paddingHorizontal: 14, paddingVertical: 7,
+  },
+  adminPillText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  avatarBtn: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: C.greenLight, alignItems: 'center', justifyContent: 'center',
+  },
+  avatarBtnText: { fontSize: 15, fontWeight: '800', color: C.greenDeep },
+
+  scroll: { flex: 1 },
+  scrollContent: { paddingTop: 16, paddingHorizontal: 16 },
+
+  empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32 },
+  emptyEmoji: { fontSize: 56, marginBottom: 16 },
+  emptyTitle: { fontSize: 22, fontWeight: '800', color: C.ink, marginBottom: 8 },
+  emptySub: { fontSize: 15, color: C.muted, textAlign: 'center', lineHeight: 22, marginBottom: 28 },
+  createBtn: { backgroundColor: C.green, borderRadius: C.rFull, paddingHorizontal: 28, paddingVertical: 13, ...C.shadow },
   createBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-  gameCard: { margin: 16, marginBottom: 8, backgroundColor: '#fff', borderRadius: 16, padding: 20, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
-  gameCardCancelled: { opacity: 0.6 },
-  gameTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
-  gameTitle: { fontSize: 20, fontWeight: '800', color: '#111827', flex: 1 },
-  cancelledBadge: { backgroundColor: '#fee2e2', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  cancelledBadgeText: { color: '#ef4444', fontSize: 12, fontWeight: '700' },
-  gameMeta: { fontSize: 14, color: '#6b7280', marginBottom: 2 },
-  spotsRow: { flexDirection: 'row', gap: 8, marginTop: 10, marginBottom: 12, flexWrap: 'wrap' },
-  spotsBadge: { backgroundColor: '#dcfce7', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  spotsFull: { backgroundColor: '#fee2e2' },
-  spotsText: { color: '#16a34a', fontWeight: '700', fontSize: 13 },
-  spotsTextFull: { color: '#ef4444' },
-  waitlistBadge: { backgroundColor: '#fef9c3', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  waitlistBadgeText: { color: '#d97706', fontWeight: '700', fontSize: 13 },
-  actionBtn: { borderRadius: 12, padding: 14, alignItems: 'center', marginBottom: 8 },
-  actionBtnJoin: { backgroundColor: '#16a34a' },
-  actionBtnLeave: { backgroundColor: '#ef4444' },
-  actionBtnDisabled: { opacity: 0.6 },
-  actionBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  waitlistPos: { textAlign: 'center', color: '#f59e0b', fontWeight: '600', marginBottom: 8 },
-  sectionTitle: { fontSize: 14, fontWeight: '700', color: '#374151', marginTop: 12, marginBottom: 6 },
-  playerRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f9fafb', borderRadius: 8, padding: 10, marginBottom: 3 },
-  playerRowWait: { backgroundColor: '#fef9c3' },
-  playerRowMe: { borderWidth: 1.5, borderColor: '#16a34a' },
-  playerIndex: { width: 24, fontSize: 13, color: '#9ca3af', fontWeight: '600' },
-  playerName: { flex: 1, fontSize: 14, color: '#111827' },
-  youBadge: { fontSize: 11, fontWeight: '700', color: '#16a34a', backgroundColor: '#dcfce7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
-  adminActions: { flexDirection: 'row', gap: 8, marginTop: 12, flexWrap: 'wrap' },
-  adminActionBtn: { borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#f3f4f6', borderWidth: 1, borderColor: '#e5e7eb' },
-  adminActionBtnDanger: { backgroundColor: '#fff', borderColor: '#ef4444' },
-  adminActionBtnText: { fontSize: 13, fontWeight: '600', color: '#374151' },
-  adminActionBtnTextDanger: { color: '#ef4444' },
+
+  // Card
+  card: { backgroundColor: C.surface, borderRadius: C.rLg, marginBottom: 14, overflow: 'hidden', ...C.shadow },
+  cardCancelled: { opacity: 0.55 },
+
+  cardHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 16, paddingBottom: 10 },
+  cardTitle: { fontSize: 20, fontWeight: '800', color: C.ink, letterSpacing: -0.3, marginBottom: 4 },
+  cardMeta: { fontSize: 13, color: C.muted, lineHeight: 18 },
+
+  statusBadge: { borderRadius: C.rFull, paddingHorizontal: 10, paddingVertical: 5, alignSelf: 'flex-start' },
+  statusBadgeText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.1 },
+
+  // Capacity
+  capRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingBottom: 14 },
+  capTrack: { flex: 1, height: 6, backgroundColor: C.bg, borderRadius: C.rFull, overflow: 'hidden' },
+  capFill: { height: '100%', backgroundColor: C.green, borderRadius: C.rFull },
+  capLabel: { fontSize: 13, fontWeight: '700', color: C.muted, minWidth: 44, textAlign: 'right' },
+  waitBadge: { backgroundColor: C.amberLight, borderRadius: C.rFull, paddingHorizontal: 8, paddingVertical: 3 },
+  waitBadgeText: { fontSize: 11, fontWeight: '700', color: C.amber },
+
+  waitBanner: {
+    marginHorizontal: 16, marginBottom: 12,
+    backgroundColor: C.amberLight, borderRadius: C.rSm,
+    paddingHorizontal: 12, paddingVertical: 9,
+  },
+  waitBannerText: { fontSize: 13, fontWeight: '600', color: C.amber },
+
+  // Action
+  actionBtn: { marginHorizontal: 16, marginBottom: 12, borderRadius: C.rMd, paddingVertical: 14, alignItems: 'center' },
+  actionJoin: { backgroundColor: C.green },
+  actionLeave: { backgroundColor: C.redLight, borderWidth: 1.5, borderColor: C.redBorder },
+  actionDisabled: { opacity: 0.5 },
+  actionText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  actionTextLeave: { color: C.red },
+
+  // Player chips
+  playerSection: { paddingHorizontal: 16, paddingBottom: 12 },
+  playerLabel: { fontSize: 11, fontWeight: '700', color: C.muted, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 },
+  playerCount: { fontWeight: '500', color: C.subtle },
+  playerGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  playerChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: C.bg, borderRadius: C.rFull, paddingHorizontal: 10, paddingVertical: 5,
+  },
+  playerChipWait: { backgroundColor: C.amberLight },
+  playerChipMe: { backgroundColor: C.greenUltra, borderWidth: 1.5, borderColor: C.greenLight },
+  playerInit: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.07)', alignItems: 'center', justifyContent: 'center' },
+  playerInitWait: { backgroundColor: C.amberBorder },
+  playerInitMe: { backgroundColor: C.green },
+  playerInitTxt: { fontSize: 11, fontWeight: '700', color: C.muted },
+  playerInitTxtMe: { color: '#fff' },
+  playerName: { fontSize: 13, color: C.inkSoft, maxWidth: 90 },
+  playerNameMe: { fontWeight: '700', color: C.green },
+
+  // Admin chips
+  adminRow: {
+    flexDirection: 'row', gap: 6, flexWrap: 'wrap',
+    paddingHorizontal: 16, paddingBottom: 14, paddingTop: 6,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.separator,
+  },
+  adminChip: {
+    borderRadius: C.rFull, paddingHorizontal: 14, paddingVertical: 7,
+    backgroundColor: C.bg, borderWidth: 1, borderColor: C.separator,
+  },
+  adminChipDanger: { backgroundColor: C.redLight, borderColor: C.redBorder },
+  adminChipText: { fontSize: 13, fontWeight: '600', color: C.inkSoft },
+  adminChipTextDanger: { color: C.red },
 });
