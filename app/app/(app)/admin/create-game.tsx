@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   Alert, ScrollView, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { router } from 'expo-router';
 import { supabase } from '../../../src/lib/supabase';
 import { useAuth } from '../../../src/context/AuthContext';
@@ -12,8 +13,14 @@ export default function CreateGameScreen() {
   const { profile } = useAuth();
   const [title, setTitle] = useState('');
   const [location, setLocation] = useState('');
-  const [date, setDate] = useState(''); // YYYY-MM-DD
-  const [time, setTime] = useState(''); // HH:MM
+  const [scheduledAt, setScheduledAt] = useState<Date>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    d.setHours(18, 0, 0, 0);
+    return d;
+  });
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [maxPlayers, setMaxPlayers] = useState('14');
   const [playerSearch, setPlayerSearch] = useState('');
   const [searchResults, setSearchResults] = useState<Profile[]>([]);
@@ -28,7 +35,9 @@ export default function CreateGameScreen() {
       .select('*')
       .ilike('name', `%${query}%`)
       .limit(10);
-    setSearchResults((data ?? []).filter(p => !selectedPlayers.find(s => s.id === p.id) && p.id !== profile!.id));
+    setSearchResults((data ?? []).filter(p =>
+      !selectedPlayers.find(s => s.id === p.id) && p.id !== profile!.id
+    ));
   }
 
   function addPlayer(p: Profile) {
@@ -42,13 +51,12 @@ export default function CreateGameScreen() {
   }
 
   async function createGame() {
-    if (!title.trim() || !date || !time) {
-      Alert.alert('Missing fields', 'Title, date, and time are required.');
+    if (!title.trim()) {
+      Alert.alert('Missing title', 'Please enter a game title.');
       return;
     }
-    const scheduledAt = new Date(`${date}T${time}:00`);
-    if (isNaN(scheduledAt.getTime())) {
-      Alert.alert('Invalid date/time', 'Use format YYYY-MM-DD and HH:MM');
+    if (scheduledAt < new Date()) {
+      Alert.alert('Invalid date', 'Please pick a future date and time.');
       return;
     }
     const max = parseInt(maxPlayers) || 14;
@@ -72,7 +80,7 @@ export default function CreateGameScreen() {
       return;
     }
 
-    // Build player list — admin is always first
+    // Admin is always first, then any pre-added players
     const otherPlayers = selectedPlayers.filter(p => p.id !== profile!.id);
     const allPlayers = [profile!, ...otherPlayers];
 
@@ -87,16 +95,16 @@ export default function CreateGameScreen() {
     const { error: regError } = await supabase.from('registrations').insert(regs);
     if (regError) {
       Alert.alert('Warning', `Game created but could not add players: ${regError.message}`);
-      setLoading(false);
-      router.replace('/(app)/home');
-      return;
     }
 
     setLoading(false);
-    Alert.alert('Game created!', `${title} has been scheduled.`, [
+    Alert.alert('Game created! 🎉', `"${title.trim()}" has been scheduled.`, [
       { text: 'OK', onPress: () => router.replace('/(app)/home') },
     ]);
   }
+
+  const formatDate = (d: Date) => d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  const formatTime = (d: Date) => d.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -110,16 +118,49 @@ export default function CreateGameScreen() {
 
         <View style={styles.form}>
           <Text style={styles.label}>Title *</Text>
-          <TextInput style={styles.input} placeholder="e.g. Sunday kickabout" value={title} onChangeText={setTitle} />
+          <TextInput style={styles.input} placeholder="e.g. Friday Kickabout" value={title} onChangeText={setTitle} />
 
           <Text style={styles.label}>Location</Text>
           <TextInput style={styles.input} placeholder="e.g. Victoria Park" value={location} onChangeText={setLocation} />
 
-          <Text style={styles.label}>Date * (YYYY-MM-DD)</Text>
-          <TextInput style={styles.input} placeholder="2025-06-07" keyboardType="numbers-and-punctuation" value={date} onChangeText={setDate} />
+          <Text style={styles.label}>Date *</Text>
+          <TouchableOpacity style={styles.pickerBtn} onPress={() => setShowDatePicker(true)}>
+            <Text style={styles.pickerBtnText}>{formatDate(scheduledAt)}</Text>
+          </TouchableOpacity>
+          {showDatePicker && (
+            <DateTimePicker
+              value={scheduledAt}
+              mode="date"
+              minimumDate={new Date()}
+              onChange={(_, date) => {
+                setShowDatePicker(false);
+                if (date) {
+                  const updated = new Date(scheduledAt);
+                  updated.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+                  setScheduledAt(updated);
+                }
+              }}
+            />
+          )}
 
-          <Text style={styles.label}>Time * (HH:MM, 24h)</Text>
-          <TextInput style={styles.input} placeholder="18:00" keyboardType="numbers-and-punctuation" value={time} onChangeText={setTime} />
+          <Text style={styles.label}>Time *</Text>
+          <TouchableOpacity style={styles.pickerBtn} onPress={() => setShowTimePicker(true)}>
+            <Text style={styles.pickerBtnText}>{formatTime(scheduledAt)}</Text>
+          </TouchableOpacity>
+          {showTimePicker && (
+            <DateTimePicker
+              value={scheduledAt}
+              mode="time"
+              onChange={(_, date) => {
+                setShowTimePicker(false);
+                if (date) {
+                  const updated = new Date(scheduledAt);
+                  updated.setHours(date.getHours(), date.getMinutes());
+                  setScheduledAt(updated);
+                }
+              }}
+            />
+          )}
 
           <Text style={styles.label}>Max players</Text>
           <TextInput style={styles.input} keyboardType="number-pad" value={maxPlayers} onChangeText={setMaxPlayers} />
@@ -142,9 +183,9 @@ export default function CreateGameScreen() {
             <View style={styles.selectedList}>
               {selectedPlayers.map((p, i) => (
                 <View key={p.id} style={styles.selectedPlayer}>
-                  <Text style={styles.selectedIndex}>{i + 1}.</Text>
+                  <Text style={styles.selectedIndex}>{i + 2}.</Text>
                   <Text style={styles.selectedName}>{p.name}</Text>
-                  {i >= parseInt(maxPlayers) && <Text style={styles.waitlistTag}>Waitlist</Text>}
+                  {i + 1 >= parseInt(maxPlayers) && <Text style={styles.waitlistTag}>Waitlist</Text>}
                   <TouchableOpacity onPress={() => removePlayer(p.id)}>
                     <Text style={styles.removeBtn}>✕</Text>
                   </TouchableOpacity>
@@ -152,6 +193,10 @@ export default function CreateGameScreen() {
               ))}
             </View>
           )}
+
+          <View style={styles.adminNote}>
+            <Text style={styles.adminNoteText}>You'll be added as player #1 automatically</Text>
+          </View>
 
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
@@ -175,15 +220,19 @@ const styles = StyleSheet.create({
   form: { padding: 16 },
   label: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 6, marginTop: 12 },
   input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d1d5db', borderRadius: 10, padding: 14, fontSize: 15 },
+  pickerBtn: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d1d5db', borderRadius: 10, padding: 14 },
+  pickerBtnText: { fontSize: 15, color: '#111827' },
   searchResult: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: '#fff', padding: 12, borderBottomWidth: 1, borderColor: '#e5e7eb' },
   searchResultText: { fontSize: 15, color: '#111827' },
   searchResultAdd: { fontSize: 14, color: '#16a34a', fontWeight: '700' },
   selectedList: { marginTop: 12, backgroundColor: '#fff', borderRadius: 10, overflow: 'hidden', borderWidth: 1, borderColor: '#e5e7eb' },
   selectedPlayer: { flexDirection: 'row', alignItems: 'center', padding: 12, borderBottomWidth: 1, borderColor: '#f3f4f6' },
-  selectedIndex: { width: 24, color: '#9ca3af', fontWeight: '600' },
+  selectedIndex: { width: 28, color: '#9ca3af', fontWeight: '600' },
   selectedName: { flex: 1, fontSize: 15, color: '#111827' },
   waitlistTag: { fontSize: 11, color: '#d97706', fontWeight: '700', backgroundColor: '#fef9c3', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, marginRight: 8 },
   removeBtn: { fontSize: 16, color: '#ef4444', paddingHorizontal: 4 },
+  adminNote: { marginTop: 12, backgroundColor: '#dcfce7', borderRadius: 8, padding: 10 },
+  adminNoteText: { color: '#16a34a', fontSize: 13, fontWeight: '600' },
   button: { backgroundColor: '#16a34a', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 24 },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
