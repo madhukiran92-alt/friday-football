@@ -72,20 +72,25 @@ export default function CreateGameScreen() {
       return;
     }
 
-    // Always pre-add the admin as position 1
-    const adminAlreadyAdded = selectedPlayers.find(p => p.id === profile!.id);
-    const allPlayers = adminAlreadyAdded
-      ? selectedPlayers
-      : [profile! as any, ...selectedPlayers];
+    // Build player list — admin is always first
+    const otherPlayers = selectedPlayers.filter(p => p.id !== profile!.id);
+    const allPlayers = [profile!, ...otherPlayers];
 
     const regs = allPlayers.map((p, i) => ({
       game_id: gameData.id,
       profile_id: p.id,
-      status: i < max ? 'confirmed' : 'waitlist',
+      status: (i < max ? 'confirmed' : 'waitlist') as 'confirmed' | 'waitlist',
       position: i + 1,
       added_by: profile!.id,
     }));
-    await supabase.from('registrations').upsert(regs, { onConflict: 'game_id,profile_id' });
+
+    const { error: regError } = await supabase.from('registrations').insert(regs);
+    if (regError) {
+      Alert.alert('Warning', `Game created but could not add players: ${regError.message}`);
+      setLoading(false);
+      router.replace('/(app)/home');
+      return;
+    }
 
     setLoading(false);
     Alert.alert('Game created!', `${title} has been scheduled.`, [

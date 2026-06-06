@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   Alert, ActivityIndicator, ScrollView, RefreshControl,
@@ -16,12 +16,20 @@ type GameWithRegs = Game & {
 
 export default function HomeScreen() {
   const { profile, isAdmin } = useAuth();
+  const profileIdRef = useRef<string | undefined>(undefined);
   const [games, setGames] = useState<GameWithRegs[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [joiningId, setJoiningId] = useState<string | null>(null);
 
-  async function fetchGames() {
+  // Keep ref in sync so realtime callbacks always use latest profileId
+  useEffect(() => {
+    profileIdRef.current = profile?.id;
+  }, [profile?.id]);
+
+  const fetchGames = useCallback(async () => {
+    const profileId = profileIdRef.current;
+
     const { data: gamesData } = await supabase
       .from('games')
       .select('*')
@@ -43,12 +51,12 @@ export default function HomeScreen() {
         ...game,
         confirmed: all.filter(r => r.status === 'confirmed'),
         waitlist: all.filter(r => r.status === 'waitlist'),
-        myReg: all.find(r => r.profile_id === profile?.id) ?? null,
+        myReg: profileId ? (all.find(r => r.profile_id === profileId) ?? null) : null,
       };
     }));
 
     setGames(enriched);
-  }
+  }, []); // stable reference — reads profileId via ref
 
   async function load(isRefresh = false) {
     if (isRefresh) setRefreshing(true);
@@ -58,17 +66,24 @@ export default function HomeScreen() {
     else setLoading(false);
   }
 
-  useEffect(() => { load(); }, []);
+  // Load when profile is ready
+  useEffect(() => {
+    if (profile?.id) {
+      profileIdRef.current = profile.id;
+      load();
+    }
+  }, [profile?.id]);
 
+  // Realtime subscription — fetchGames is stable so no stale closure
   useEffect(() => {
     const channel = supabase
-      .channel('all-registrations')
+      .channel(`registrations-${Date.now()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations' }, () => {
         fetchGames();
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, []);
+  }, [fetchGames]);
 
   async function joinGame(game: GameWithRegs) {
     if (!profile) return;
@@ -93,7 +108,19 @@ export default function HomeScreen() {
       {
         text: 'Leave', style: 'destructive', onPress: async () => {
           await supabase.from('registrations').delete().eq('id', game.myReg!.id);
-          await promoteFromWaitlist(game.id, game.myReg!.position, game.max_players);
+          // Promote first waitlisted player
+          const { data } = await supabase
+            .from('registrations')
+            .select('id')
+            .eq('game_id', game.id)
+            .eq('status', 'waitlist')
+            .order('position', { ascending: true })
+            .limit(1);
+          if (data?.length) {
+            await supabase.from('registrations')
+              .update({ status: 'confirmed', position: game.myReg!.position })
+              .eq('id', data[0].id);
+          }
           await fetchGames();
         },
       },
@@ -101,34 +128,15 @@ export default function HomeScreen() {
   }
 
   async function cancelGame(game: GameWithRegs) {
-    Alert.alert(
-      'Cancel game?',
-      `This will cancel "${game.title}" and notify all players.`,
-      [
-        { text: 'Keep it', style: 'cancel' },
-        {
-          text: 'Cancel Game', style: 'destructive', onPress: async () => {
-            await supabase.from('games').update({ status: 'cancelled' }).eq('id', game.id);
-            await fetchGames();
-          },
+    Alert.alert('Cancel game?', `This will cancel "${game.title}".`, [
+      { text: 'Keep it', style: 'cancel' },
+      {
+        text: 'Cancel Game', style: 'destructive', onPress: async () => {
+          await supabase.from('games').update({ status: 'cancelled' }).eq('id', game.id);
+          await fetchGames();
         },
-      ]
-    );
-  }
-
-  async function promoteFromWaitlist(gameId: string, vacatedPosition: number, maxPlayers: number) {
-    const { data } = await supabase
-      .from('registrations')
-      .select('*')
-      .eq('game_id', gameId)
-      .eq('status', 'waitlist')
-      .order('position', { ascending: true })
-      .limit(1);
-
-    if (!data?.length) return;
-    await supabase.from('registrations')
-      .update({ status: 'confirmed', position: vacatedPosition })
-      .eq('id', data[0].id);
+      },
+    ]);
   }
 
   if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color="#16a34a" />;
@@ -138,9 +146,8 @@ export default function HomeScreen() {
       style={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor="#16a34a" />}
     >
-      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Friday Football</Text>
+        <Text style={styles.headerTitle}>Friday Football ⚽</Text>
         {isAdmin && (
           <TouchableOpacity style={styles.adminBtn} onPress={() => router.push('/(app)/admin')}>
             <Text style={styles.adminBtnText}>Admin</Text>
@@ -160,10 +167,14 @@ export default function HomeScreen() {
       ) : (
         games.map(game => (
           <View key={game.id} style={styles.gameCard}>
-            {/* Game info */}
             <Text style={styles.gameTitle}>{game.title}</Text>
             {game.location && <Text style={styles.gameMeta}>📍 {game.location}</Text>}
-            <Text style={styles.gameMeta}>🗓 {new Date(game.scheduled_at).toLocaleString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</Text>
+            <Text style={styles.gameMeta}>
+              🗓 {new Date(game.scheduled_at).toLocaleString('en-AU', {
+                weekday: 'short', day: 'numeric', month: 'short',
+                hour: '2-digit', minute: '2-digit',
+              })}
+            </Text>
 
             <View style={styles.spotsRow}>
               <View style={[styles.spotsBadge, game.confirmed.length >= game.max_players && styles.spotsFull]}>
@@ -178,7 +189,7 @@ export default function HomeScreen() {
               )}
             </View>
 
-            {/* Join / Leave button */}
+            {/* Join / Leave */}
             {game.status === 'open' && (
               <TouchableOpacity
                 style={[
@@ -190,9 +201,11 @@ export default function HomeScreen() {
                 disabled={joiningId === game.id}
               >
                 <Text style={styles.actionBtnText}>
-                  {joiningId === game.id ? '...' : game.myReg
-                    ? game.myReg.status === 'waitlist' ? 'Leave Waitlist' : 'Leave Game'
-                    : game.confirmed.length >= game.max_players ? 'Join Waitlist' : 'Join Game'}
+                  {joiningId === game.id
+                    ? '...'
+                    : game.myReg
+                      ? game.myReg.status === 'waitlist' ? 'Leave Waitlist' : 'Leave Game'
+                      : game.confirmed.length >= game.max_players ? 'Join Waitlist' : 'Join Game'}
                 </Text>
               </TouchableOpacity>
             )}
@@ -227,14 +240,17 @@ export default function HomeScreen() {
               </>
             )}
 
-            {/* Teams button for completed games */}
+            {/* View teams */}
             {game.status === 'completed' && (
-              <TouchableOpacity style={[styles.actionBtn, styles.actionBtnJoin, { marginTop: 12 }]} onPress={() => router.push({ pathname: '/(app)/teams', params: { gameId: game.id } })}>
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.actionBtnJoin, { marginTop: 12 }]}
+                onPress={() => router.push({ pathname: '/(app)/teams', params: { gameId: game.id } })}
+              >
                 <Text style={styles.actionBtnText}>View Teams</Text>
               </TouchableOpacity>
             )}
 
-            {/* Admin cancel button */}
+            {/* Admin cancel */}
             {isAdmin && game.status === 'open' && (
               <TouchableOpacity style={styles.cancelBtn} onPress={() => cancelGame(game)}>
                 <Text style={styles.cancelBtnText}>Cancel Game</Text>
