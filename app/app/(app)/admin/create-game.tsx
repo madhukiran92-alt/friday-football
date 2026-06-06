@@ -132,7 +132,7 @@ export default function CreateGameScreen() {
               value={scheduledAt}
               mode="date"
               minimumDate={new Date()}
-              onChange={(_, date) => {
+              onValueChange={(_, date) => {
                 setShowDatePicker(false);
                 if (date) {
                   const updated = new Date(scheduledAt);
@@ -140,6 +140,7 @@ export default function CreateGameScreen() {
                   setScheduledAt(updated);
                 }
               }}
+              onDismiss={() => setShowDatePicker(false)}
             />
           )}
 
@@ -151,7 +152,7 @@ export default function CreateGameScreen() {
             <DateTimePicker
               value={scheduledAt}
               mode="time"
-              onChange={(_, date) => {
+              onValueChange={(_, date) => {
                 setShowTimePicker(false);
                 if (date) {
                   const updated = new Date(scheduledAt);
@@ -159,6 +160,7 @@ export default function CreateGameScreen() {
                   setScheduledAt(updated);
                 }
               }}
+              onDismiss={() => setShowTimePicker(false)}
             />
           )}
 

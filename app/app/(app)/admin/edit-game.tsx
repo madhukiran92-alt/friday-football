@@ -93,7 +93,7 @@ export default function EditGameScreen() {
             <DateTimePicker
               value={scheduledAt}
               mode="date"
-              onChange={(_, date) => {
+              onValueChange={(_, date) => {
                 setShowDatePicker(false);
                 if (date) {
                   const updated = new Date(scheduledAt);
@@ -101,6 +101,7 @@ export default function EditGameScreen() {
                   setScheduledAt(updated);
                 }
               }}
+              onDismiss={() => setShowDatePicker(false)}
             />
           )}
 
@@ -112,7 +113,7 @@ export default function EditGameScreen() {
             <DateTimePicker
               value={scheduledAt}
               mode="time"
-              onChange={(_, date) => {
+              onValueChange={(_, date) => {
                 setShowTimePicker(false);
                 if (date) {
                   const updated = new Date(scheduledAt);
@@ -120,6 +121,7 @@ export default function EditGameScreen() {
                   setScheduledAt(updated);
                 }
               }}
+              onDismiss={() => setShowTimePicker(false)}
             />
           )}
 
