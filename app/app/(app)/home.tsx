@@ -33,7 +33,7 @@ export default function HomeScreen() {
     const { data: gamesData } = await supabase
       .from('games')
       .select('*')
-      .in('status', ['open', 'closed', 'completed'])
+      .in('status', ['open', 'closed', 'completed', 'cancelled'])
       .gte('scheduled_at', new Date().toISOString())
       .order('scheduled_at', { ascending: true });
 
@@ -88,14 +88,7 @@ export default function HomeScreen() {
   async function joinGame(game: GameWithRegs) {
     if (!profile) return;
     setJoiningId(game.id);
-    const nextPosition = (game.confirmed.length + game.waitlist.length) + 1;
-    const status = nextPosition <= game.max_players ? 'confirmed' : 'waitlist';
-    const { error } = await supabase.from('registrations').insert({
-      game_id: game.id,
-      profile_id: profile.id,
-      status,
-      position: nextPosition,
-    });
+    const { error } = await supabase.rpc('join_game', { p_game_id: game.id });
     if (error) Alert.alert('Error', error.message);
     await fetchGames();
     setJoiningId(null);
@@ -107,20 +100,8 @@ export default function HomeScreen() {
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Leave', style: 'destructive', onPress: async () => {
-          await supabase.from('registrations').delete().eq('id', game.myReg!.id);
-          // Promote first waitlisted player
-          const { data } = await supabase
-            .from('registrations')
-            .select('id')
-            .eq('game_id', game.id)
-            .eq('status', 'waitlist')
-            .order('position', { ascending: true })
-            .limit(1);
-          if (data?.length) {
-            await supabase.from('registrations')
-              .update({ status: 'confirmed', position: game.myReg!.position })
-              .eq('id', data[0].id);
-          }
+          const { error } = await supabase.rpc('leave_game', { p_registration_id: game.myReg!.id });
+          if (error) Alert.alert('Error', error.message);
           await fetchGames();
         },
       },
@@ -148,11 +129,16 @@ export default function HomeScreen() {
     >
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Friday Football ⚽</Text>
-        {isAdmin && (
-          <TouchableOpacity style={styles.adminBtn} onPress={() => router.push('/(app)/admin')}>
-            <Text style={styles.adminBtnText}>Admin</Text>
+        <View style={styles.headerActions}>
+          {isAdmin && (
+            <TouchableOpacity style={styles.adminBtn} onPress={() => router.push('/(app)/admin')}>
+              <Text style={styles.adminBtnText}>Admin</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={styles.profileBtn} onPress={() => router.push('/(app)/profile')}>
+            <Text style={styles.profileBtnText}>👤</Text>
           </TouchableOpacity>
-        )}
+        </View>
       </View>
 
       {games.length === 0 ? (
@@ -166,8 +152,13 @@ export default function HomeScreen() {
         </View>
       ) : (
         games.map(game => (
-          <View key={game.id} style={styles.gameCard}>
-            <Text style={styles.gameTitle}>{game.title}</Text>
+          <View key={game.id} style={[styles.gameCard, game.status === 'cancelled' && styles.gameCardCancelled]}>
+            <View style={styles.gameTitleRow}>
+              <Text style={styles.gameTitle}>{game.title}</Text>
+              {game.status === 'cancelled' && (
+                <View style={styles.cancelledBadge}><Text style={styles.cancelledBadgeText}>Cancelled</Text></View>
+              )}
+            </View>
             {game.location && <Text style={styles.gameMeta}>📍 {game.location}</Text>}
             <Text style={styles.gameMeta}>
               🗓 {new Date(game.scheduled_at).toLocaleString('en-AU', {
@@ -250,11 +241,27 @@ export default function HomeScreen() {
               </TouchableOpacity>
             )}
 
-            {/* Admin cancel */}
-            {isAdmin && game.status === 'open' && (
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => cancelGame(game)}>
-                <Text style={styles.cancelBtnText}>Cancel Game</Text>
-              </TouchableOpacity>
+            {/* Admin actions */}
+            {isAdmin && game.status !== 'cancelled' && (
+              <View style={styles.adminActions}>
+                <TouchableOpacity
+                  style={styles.adminActionBtn}
+                  onPress={() => router.push({ pathname: '/(app)/admin/manage-game', params: { gameId: game.id } })}
+                >
+                  <Text style={styles.adminActionBtnText}>Manage Players</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.adminActionBtn}
+                  onPress={() => router.push({ pathname: '/(app)/admin/edit-game', params: { gameId: game.id } })}
+                >
+                  <Text style={styles.adminActionBtnText}>Edit</Text>
+                </TouchableOpacity>
+                {game.status === 'open' && (
+                  <TouchableOpacity style={[styles.adminActionBtn, styles.adminActionBtnDanger]} onPress={() => cancelGame(game)}>
+                    <Text style={[styles.adminActionBtnText, styles.adminActionBtnTextDanger]}>Cancel</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             )}
           </View>
         ))
@@ -268,14 +275,21 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9fafb' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, paddingTop: 60, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
   headerTitle: { fontSize: 22, fontWeight: '800', color: '#16a34a' },
+  headerActions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   adminBtn: { backgroundColor: '#dcfce7', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 },
   adminBtnText: { color: '#16a34a', fontWeight: '700', fontSize: 13 },
+  profileBtn: { backgroundColor: '#f3f4f6', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
+  profileBtnText: { fontSize: 16 },
   empty: { alignItems: 'center', padding: 60 },
   emptyText: { fontSize: 18, color: '#6b7280', marginBottom: 20 },
   createBtn: { backgroundColor: '#16a34a', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12 },
   createBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
   gameCard: { margin: 16, marginBottom: 8, backgroundColor: '#fff', borderRadius: 16, padding: 20, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
-  gameTitle: { fontSize: 20, fontWeight: '800', color: '#111827', marginBottom: 4 },
+  gameCardCancelled: { opacity: 0.6 },
+  gameTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
+  gameTitle: { fontSize: 20, fontWeight: '800', color: '#111827', flex: 1 },
+  cancelledBadge: { backgroundColor: '#fee2e2', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  cancelledBadgeText: { color: '#ef4444', fontSize: 12, fontWeight: '700' },
   gameMeta: { fontSize: 14, color: '#6b7280', marginBottom: 2 },
   spotsRow: { flexDirection: 'row', gap: 8, marginTop: 10, marginBottom: 12, flexWrap: 'wrap' },
   spotsBadge: { backgroundColor: '#dcfce7', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
@@ -297,6 +311,9 @@ const styles = StyleSheet.create({
   playerIndex: { width: 24, fontSize: 13, color: '#9ca3af', fontWeight: '600' },
   playerName: { flex: 1, fontSize: 14, color: '#111827' },
   youBadge: { fontSize: 11, fontWeight: '700', color: '#16a34a', backgroundColor: '#dcfce7', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
-  cancelBtn: { marginTop: 8, borderRadius: 12, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#ef4444' },
-  cancelBtnText: { color: '#ef4444', fontSize: 14, fontWeight: '600' },
+  adminActions: { flexDirection: 'row', gap: 8, marginTop: 12, flexWrap: 'wrap' },
+  adminActionBtn: { borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#f3f4f6', borderWidth: 1, borderColor: '#e5e7eb' },
+  adminActionBtnDanger: { backgroundColor: '#fff', borderColor: '#ef4444' },
+  adminActionBtnText: { fontSize: 13, fontWeight: '600', color: '#374151' },
+  adminActionBtnTextDanger: { color: '#ef4444' },
 });

@@ -14,7 +14,7 @@ export type Admin = {
   profile?: Profile;
 };
 
-export type GameStatus = 'open' | 'closed' | 'completed';
+export type GameStatus = 'open' | 'closed' | 'completed' | 'cancelled';
 
 export type Game = {
   id: string;
