@@ -54,12 +54,15 @@ export default function HomeScreen() {
 
   useEffect(() => {
     load();
+  }, []);
 
-    // real-time subscription
+  useEffect(() => {
+    if (!game?.id) return;
+
     const channel = supabase
-      .channel('registrations')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations' }, () => {
-        if (game) fetchRegistrations(game.id);
+      .channel(`registrations-${game.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations', filter: `game_id=eq.${game.id}` }, () => {
+        fetchRegistrations(game.id);
       })
       .subscribe();
 
@@ -122,7 +125,7 @@ export default function HomeScreen() {
         <Text style={styles.headerTitle}>Friday Football</Text>
         <View style={styles.headerRight}>
           {isAdmin && (
-            <TouchableOpacity style={styles.adminBtn} onPress={() => router.push('/(app)/admin/index')}>
+            <TouchableOpacity style={styles.adminBtn} onPress={() => router.push('/(app)/admin')}>
               <Text style={styles.adminBtnText}>Admin</Text>
             </TouchableOpacity>
           )}
@@ -133,7 +136,7 @@ export default function HomeScreen() {
         <View style={styles.noGame}>
           <Text style={styles.noGameText}>No game scheduled yet.</Text>
           {isAdmin && (
-            <TouchableOpacity style={styles.button} onPress={() => router.push('/(app)/admin/index')}>
+            <TouchableOpacity style={styles.button} onPress={() => router.push('/(app)/admin')}>
               <Text style={styles.buttonText}>Create a Game</Text>
             </TouchableOpacity>
           )}

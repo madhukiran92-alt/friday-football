@@ -28,7 +28,7 @@ export default function CreateGameScreen() {
       .select('*')
       .ilike('name', `%${query}%`)
       .limit(10);
-    setSearchResults((data ?? []).filter(p => !selectedPlayers.find(s => s.id === p.id)));
+    setSearchResults((data ?? []).filter(p => !selectedPlayers.find(s => s.id === p.id) && p.id !== profile!.id));
   }
 
   function addPlayer(p: Profile) {
@@ -72,17 +72,20 @@ export default function CreateGameScreen() {
       return;
     }
 
-    // Pre-add selected players
-    if (selectedPlayers.length > 0) {
-      const regs = selectedPlayers.map((p, i) => ({
-        game_id: gameData.id,
-        profile_id: p.id,
-        status: i < max ? 'confirmed' : 'waitlist',
-        position: i + 1,
-        added_by: profile!.id,
-      }));
-      await supabase.from('registrations').insert(regs);
-    }
+    // Always pre-add the admin as position 1
+    const adminAlreadyAdded = selectedPlayers.find(p => p.id === profile!.id);
+    const allPlayers = adminAlreadyAdded
+      ? selectedPlayers
+      : [profile! as any, ...selectedPlayers];
+
+    const regs = allPlayers.map((p, i) => ({
+      game_id: gameData.id,
+      profile_id: p.id,
+      status: i < max ? 'confirmed' : 'waitlist',
+      position: i + 1,
+      added_by: profile!.id,
+    }));
+    await supabase.from('registrations').insert(regs);
 
     setLoading(false);
     Alert.alert('Game created!', `${title} has been scheduled.`, [

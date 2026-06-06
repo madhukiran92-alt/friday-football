@@ -1,10 +1,11 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '../../../src/context/AuthContext';
 import { Redirect } from 'expo-router';
 
 export default function AdminIndexScreen() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, loading } = useAuth();
+  if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color="#16a34a" />;
   if (!isAdmin) return <Redirect href="/(app)/home" />;
 
   return (
