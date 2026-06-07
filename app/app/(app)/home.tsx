@@ -4,7 +4,7 @@ import {
   Alert, ActivityIndicator, ScrollView, RefreshControl,
   StatusBar, SafeAreaView,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';
 import { useAuth } from '../../src/context/AuthContext';
 import { Game, Registration } from '../../src/lib/types';
@@ -62,6 +62,11 @@ export default function HomeScreen() {
   useEffect(() => {
     if (profile?.id) { profileIdRef.current = profile.id; load(); }
   }, [profile?.id]);
+
+  // Re-fetch whenever this screen comes into focus (e.g. after creating a game)
+  useFocusEffect(useCallback(() => {
+    if (profileIdRef.current) fetchGames();
+  }, [fetchGames]));
 
   useEffect(() => {
     const channel = supabase
