@@ -153,14 +153,9 @@ export default function AdminIndexScreen() {
                 {selectedGame ? selectedGame.title : 'Admin'}
               </Text>
             </View>
-            <View style={styles.headerRight}>
-              <TouchableOpacity style={styles.headerBtn} onPress={() => router.push('/(app)/admin/manage-admins')} activeOpacity={0.75}>
-                <Text style={styles.headerBtnText}>Admins</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
-                <Text style={styles.headerBack}>← Home</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity style={styles.headerBtn} onPress={() => router.push('/(app)/admin/manage-admins')} activeOpacity={0.75}>
+              <Text style={styles.headerBtnText}>Admins</Text>
+            </TouchableOpacity>
           </View>
         </SafeAreaView>
 

@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   Alert, ActivityIndicator, ScrollView, RefreshControl,
-  StatusBar, SafeAreaView, Modal, Animated, Pressable,
+  StatusBar, SafeAreaView,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';
@@ -23,8 +23,6 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [joiningId, setJoiningId] = useState<string | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const slideAnim = useRef(new Animated.Value(280)).current;
 
   useEffect(() => { profileIdRef.current = profile?.id; }, [profile?.id]);
 
@@ -76,15 +74,6 @@ export default function HomeScreen() {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [fetchGames]);
-
-  function openSidebar() {
-    setSidebarOpen(true);
-    Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 20, stiffness: 180 }).start();
-  }
-
-  function closeSidebar() {
-    Animated.timing(slideAnim, { toValue: 280, useNativeDriver: true, duration: 220 }).start(() => setSidebarOpen(false));
-  }
 
   async function joinGame(game: GameWithRegs) {
     if (!profile) return;
@@ -143,7 +132,7 @@ export default function HomeScreen() {
       <SafeAreaView style={styles.headerSafe}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>⚽  Friday Football</Text>
-          <TouchableOpacity style={styles.avatarBtn} onPress={openSidebar} activeOpacity={0.75}>
+          <TouchableOpacity style={styles.avatarBtn} onPress={() => router.push('/(app)/profile')} activeOpacity={0.75}>
             <Text style={styles.avatarBtnText}>{profile?.name?.charAt(0).toUpperCase() ?? '?'}</Text>
           </TouchableOpacity>
         </View>
@@ -184,54 +173,7 @@ export default function HomeScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* ── Sidebar drawer ── */}
-      {sidebarOpen && (
-        <Modal transparent animationType="none" onRequestClose={closeSidebar}>
-          {/* Dim overlay */}
-          <Pressable style={styles.overlay} onPress={closeSidebar} />
-
-          {/* Drawer panel slides in from right */}
-          <Animated.View style={[styles.drawer, { transform: [{ translateX: slideAnim }] }]}>
-            <SafeAreaView style={{ flex: 1 }}>
-              {/* Avatar + name */}
-              <View style={styles.drawerProfile}>
-                <View style={styles.drawerAvatar}>
-                  <Text style={styles.drawerAvatarText}>{profile?.name?.charAt(0).toUpperCase() ?? '?'}</Text>
-                </View>
-                <Text style={styles.drawerName}>{profile?.name ?? 'Player'}</Text>
-                <Text style={styles.drawerPhone}>{profile?.phone ?? ''}</Text>
-              </View>
-
-              <View style={styles.drawerDivider} />
-
-              {/* Nav items */}
-              {isAdmin && (
-                <DrawerItem
-                  icon="🏟"
-                  label="Admin Portal"
-                  onPress={() => { closeSidebar(); setTimeout(() => router.push('/(app)/admin'), 250); }}
-                />
-              )}
-              <DrawerItem
-                icon="👤"
-                label="My Profile"
-                onPress={() => { closeSidebar(); setTimeout(() => router.push('/(app)/profile'), 250); }}
-              />
-            </SafeAreaView>
-          </Animated.View>
-        </Modal>
-      )}
     </View>
-  );
-}
-
-function DrawerItem({ icon, label, onPress }: { icon: string; label: string; onPress: () => void }) {
-  return (
-    <TouchableOpacity style={styles.drawerItem} onPress={onPress} activeOpacity={0.7}>
-      <Text style={styles.drawerItemIcon}>{icon}</Text>
-      <Text style={styles.drawerItemLabel}>{label}</Text>
-      <Text style={styles.drawerItemChevron}>›</Text>
-    </TouchableOpacity>
   );
 }
 
@@ -429,36 +371,6 @@ const styles = StyleSheet.create({
   emptySub: { fontSize: 15, color: C.muted, textAlign: 'center', lineHeight: 22, marginBottom: 28 },
   createBtn: { backgroundColor: C.green, borderRadius: C.rFull, paddingHorizontal: 28, paddingVertical: 13, ...C.shadow },
   createBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-
-  // ── Sidebar ──
-  overlay: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-  },
-  drawer: {
-    position: 'absolute', top: 0, right: 0, bottom: 0,
-    width: 280, backgroundColor: '#ffffff',
-    shadowColor: '#000', shadowOffset: { width: -4, height: 0 }, shadowOpacity: 0.12, shadowRadius: 20, elevation: 16,
-  },
-  drawerProfile: {
-    alignItems: 'center', paddingTop: 40, paddingBottom: 24, paddingHorizontal: 24,
-  },
-  drawerAvatar: {
-    width: 64, height: 64, borderRadius: 32,
-    backgroundColor: C.greenDeep, alignItems: 'center', justifyContent: 'center', marginBottom: 12,
-  },
-  drawerAvatarText: { fontSize: 26, fontWeight: '800', color: '#fff' },
-  drawerName: { fontSize: 18, fontWeight: '800', color: C.ink, marginBottom: 2 },
-  drawerPhone: { fontSize: 13, color: C.muted },
-  drawerDivider: { height: StyleSheet.hairlineWidth, backgroundColor: C.separator, marginHorizontal: 20, marginBottom: 8 },
-
-  drawerItem: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    paddingHorizontal: 24, paddingVertical: 16,
-  },
-  drawerItemIcon: { fontSize: 20, width: 28, textAlign: 'center' },
-  drawerItemLabel: { flex: 1, fontSize: 16, fontWeight: '600', color: C.ink },
-  drawerItemChevron: { fontSize: 22, color: C.subtle, fontWeight: '300' },
 
   // ── Card ──
   card: { backgroundColor: C.surface, borderRadius: C.rLg, marginBottom: 14, overflow: 'hidden', ...C.shadow },
