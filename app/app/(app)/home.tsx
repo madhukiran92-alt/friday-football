@@ -102,6 +102,17 @@ export default function HomeScreen() {
     ]);
   }
 
+  async function reopenGame(game: GameWithRegs) {
+    Alert.alert('Reopen game?', `This will reopen "${game.title}" and allow players to sign up again.`, [
+      { text: 'Nevermind', style: 'cancel' },
+      { text: 'Reopen', onPress: async () => {
+        const { error } = await supabase.from('games').update({ status: 'open' }).eq('id', game.id);
+        if (error) Alert.alert('Error', error.message);
+        await fetchGames();
+      }},
+    ]);
+  }
+
   if (loading) return (
     <View style={styles.loadingWrap}>
       <StatusBar barStyle="light-content" />
@@ -166,6 +177,7 @@ export default function HomeScreen() {
               onJoin={joinGame}
               onLeave={leaveGame}
               onCancel={cancelGame}
+              onReopen={reopenGame}
             />
           ))
         )}
@@ -183,6 +195,7 @@ type CardProps = {
   onJoin: (g: GameWithRegs) => void;
   onLeave: (g: GameWithRegs) => void;
   onCancel: (g: GameWithRegs) => void;
+  onReopen: (g: GameWithRegs) => void;
 };
 
 const STATUS_BADGE = {
@@ -192,7 +205,7 @@ const STATUS_BADGE = {
   cancelled: { bg: C.cancelledBg, text: C.cancelledText },
 } as const;
 
-function GameCard({ game, profileId, isAdmin, joiningId, onJoin, onLeave, onCancel }: CardProps) {
+function GameCard({ game, profileId, isAdmin, joiningId, onJoin, onLeave, onCancel, onReopen }: CardProps) {
   const isCancelled = game.status === 'cancelled';
   const isFull = game.confirmed.length >= game.max_players;
   const fillPct = Math.min(game.confirmed.length / game.max_players, 1);
@@ -284,11 +297,18 @@ function GameCard({ game, profileId, isAdmin, joiningId, onJoin, onLeave, onCanc
       )}
 
       {/* Admin actions */}
-      {isAdmin && !isCancelled && (
+      {isAdmin && (
         <View style={styles.adminRow}>
-          <AdminChip label="Manage Players" onPress={() => router.push({ pathname: '/(app)/admin/manage-game', params: { gameId: game.id } })} />
-          <AdminChip label="Edit" onPress={() => router.push({ pathname: '/(app)/admin/edit-game', params: { gameId: game.id } })} />
-          {game.status === 'open' && <AdminChip label="Cancel" danger onPress={() => onCancel(game)} />}
+          {!isCancelled && (
+            <>
+              <AdminChip label="Manage Players" onPress={() => router.push({ pathname: '/(app)/admin/manage-game', params: { gameId: game.id } })} />
+              <AdminChip label="Edit" onPress={() => router.push({ pathname: '/(app)/admin/edit-game', params: { gameId: game.id } })} />
+              {game.status === 'open' && <AdminChip label="Cancel" danger onPress={() => onCancel(game)} />}
+            </>
+          )}
+          {isCancelled && (
+            <AdminChip label="Reopen Game" onPress={() => onReopen(game)} />
+          )}
         </View>
       )}
     </View>

@@ -173,7 +173,7 @@ export default function AdminIndexScreen() {
               </TouchableOpacity>
             </View>
           ) : (
-            <GameDetail game={selectedGame} onDeselect={() => setSelectedGame(null)} />
+            <GameDetail game={selectedGame} onRefresh={fetchGames} onDeselect={() => setSelectedGame(null)} />
           )}
         </ScrollView>
       </View>
@@ -181,7 +181,7 @@ export default function AdminIndexScreen() {
   );
 }
 
-function GameDetail({ game, onDeselect }: { game: GameWithCount; onDeselect: () => void }) {
+function GameDetail({ game, onRefresh, onDeselect }: { game: GameWithCount; onRefresh: () => void; onDeselect: () => void }) {
   const [confirmed, setConfirmed] = useState<any[]>([]);
   const [waitlist, setWaitlist] = useState<any[]>([]);
   const [fetching, setFetching] = useState(true);
@@ -247,13 +247,23 @@ function GameDetail({ game, onDeselect }: { game: GameWithCount; onDeselect: () 
       {/* Actions */}
       <Text style={styles.listHeader}>Actions</Text>
       <View style={styles.actionGrid}>
-        <ActionCard emoji="👤" label="Manage Players"
-          onPress={() => router.push({ pathname: '/(app)/admin/manage-game', params: { gameId: game.id } })} />
-        <ActionCard emoji="✏️" label="Edit Game"
-          onPress={() => router.push({ pathname: '/(app)/admin/edit-game', params: { gameId: game.id } })} />
+        {game.status !== 'cancelled' && (
+          <>
+            <ActionCard emoji="👤" label="Manage Players"
+              onPress={() => router.push({ pathname: '/(app)/admin/manage-game', params: { gameId: game.id } })} />
+            <ActionCard emoji="✏️" label="Edit Game"
+              onPress={() => router.push({ pathname: '/(app)/admin/edit-game', params: { gameId: game.id } })} />
+          </>
+        )}
         {(game.status === 'open' || game.status === 'closed') && (
           <ActionCard emoji="🎲" label="Generate Teams"
             onPress={() => router.push({ pathname: '/(app)/admin/generate-teams', params: { gameId: game.id } })} />
+        )}
+        {game.status === 'cancelled' && (
+          <ActionCard emoji="🔄" label="Reopen Game" onPress={async () => {
+            const { error } = await supabase.from('games').update({ status: 'open' }).eq('id', game.id);
+            if (!error) onRefresh();
+          }} />
         )}
       </View>
 
