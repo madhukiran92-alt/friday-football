@@ -145,6 +145,12 @@ Key RPCs (all `SECURITY DEFINER`):
 
 ---
 
+## Company
+
+Pitch is a product of **Nila** — [pitchapp.net](https://pitchapp.net)
+
+---
+
 ## Roadmap
 
 - Recurring games

@@ -8,8 +8,9 @@ import { C } from '../../src/lib/theme';
 
 type Tab = 'privacy' | 'terms';
 
-const LAST_UPDATED = '7 June 2025';
-const CONTACT_EMAIL = 'hello@pitchapp.com.au';
+const LAST_UPDATED = '7 June 2026';
+const CONTACT_EMAIL = 'hello@pitchapp.net';
+const COMPANY_NAME = 'Nila';
 
 export default function LegalScreen() {
   const [tab, setTab] = useState<Tab>('privacy');
@@ -58,8 +59,9 @@ function PrivacyPolicy() {
   return (
     <Doc title="Privacy Policy" updated={LAST_UPDATED}>
       <Section title="Overview">
-        Pitch ("we", "us", "our") is committed to protecting your privacy. This policy explains
-        what personal information we collect, how we use it, and your rights over that information.
+        {COMPANY_NAME} ("we", "us", "our") operates the Pitch app and is committed to protecting
+        your privacy. This policy explains what personal information we collect, how we use it,
+        and your rights over that information.
       </Section>
 
       <Section title="Information we collect">
@@ -113,13 +115,14 @@ function TermsOfService() {
   return (
     <Doc title="Terms of Service" updated={LAST_UPDATED}>
       <Section title="Acceptance">
-        By creating an account and using Pitch, you agree to these Terms of Service. If you do not
-        agree, please do not use the app.
+        By creating an account and using the Pitch app, you agree to these Terms of Service.
+        If you do not agree, please do not use the app.
       </Section>
 
       <Section title="What Pitch does">
-        Pitch is a platform that lets people organise and join recreational sports games. We provide
-        the tools — organisers and players are responsible for the activities they arrange.
+        Pitch is a product of {COMPANY_NAME}. It is a platform that lets people organise and join
+        recreational sports games. We provide the tools — organisers and players are responsible
+        for the activities they arrange.
       </Section>
 
       <Section title="Your account">
@@ -142,14 +145,15 @@ function TermsOfService() {
       </Section>
 
       <Section title="Disclaimer of warranties">
-        Pitch is provided "as is" without warranties of any kind. We do not guarantee uninterrupted
-        or error-free service. We are not responsible for any injuries, losses, or damages arising
-        from activities organised through the app.
+        The Pitch app is provided "as is" without warranties of any kind. We do not guarantee
+        uninterrupted or error-free service. We are not responsible for any injuries, losses,
+        or damages arising from activities organised through the app.
       </Section>
 
       <Section title="Limitation of liability">
-        To the fullest extent permitted by law, Pitch and its operators shall not be liable for any
-        indirect, incidental, or consequential damages arising out of your use of the app.
+        To the fullest extent permitted by law, {COMPANY_NAME} and its operators shall not be
+        liable for any indirect, incidental, or consequential damages arising out of your use
+        of the app.
       </Section>
 
       <Section title="Changes to these terms">
