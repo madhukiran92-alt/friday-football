@@ -12,6 +12,8 @@ Pitch is a mobile app (iOS + Android) for managing casual sports games — creat
 - **Game feed** — see all upcoming games, capacity bar, and who's playing
 - **Join / leave** — one tap to join a game or the waitlist if it's full
 - **Waitlist** — automatic promotion when a spot opens, handled atomically server-side
+- **Push notifications** — players notified when added to a game, confirmed off the waitlist, or a game is cancelled
+- **Offline error states** — clear "Can't connect" screen with retry instead of a silent empty list
 - **Team generation** — balanced random splits, saved per game
 - **Admin system** — invite-only admin accounts via one-time codes
 - **Admin portal** — create/edit games, manage players, generate teams, manage admins
@@ -87,9 +89,13 @@ friday-football/
 │   │           └── manage-admins.tsx
 │   ├── src/
 │   │   ├── context/             # AuthContext (session, profile, isAdmin)
-│   │   ├── lib/                 # Supabase client, theme constants, types
-│   │   └── components/          # ErrorBoundary
+│   │   ├── hooks/               # usePushNotifications
+│   │   ├── lib/                 # Supabase client, theme constants, types, notifications
+│   │   └── components/          # ErrorBoundary, NetworkError
 │   └── assets/                  # App icon, splash screen
+├── supabase/
+│   └── functions/
+│       └── notify-players/      # Edge function — sends Expo push notifications
 ```
 
 ---
@@ -106,13 +112,14 @@ Key tables:
 | `admins` | Admin role assignments |
 | `admin_invites` | One-time codes for granting admin access |
 | `teams` + `team_members` | Generated team assignments per game |
+| `push_tokens` | Device push tokens per user (one per device) |
 
 Key RPCs (all `SECURITY DEFINER`):
 
 | Function | Purpose |
 |---|---|
 | `join_game(p_game_id)` | Atomic join with waitlist logic and row-level locking |
-| `leave_game(p_registration_id)` | Remove player and promote first waitlisted user |
+| `leave_game(p_registration_id)` | Remove player, promote first waitlisted user, return promoted `profile_id` |
 | `redeem_admin_invite(p_code)` | Validate and consume a one-time invite code |
 | `is_admin()` | Returns true if the calling user is in the `admins` table |
 
@@ -126,6 +133,7 @@ Key RPCs (all `SECURITY DEFINER`):
 - **Waitlist integrity** — direct `UPDATE`/`DELETE` on `registrations` restricted to admins; players must go through `join_game`/`leave_game` RPCs so queue logic always runs atomically
 - **Admin invite codes** — single-use, row-locked on redemption to prevent race conditions
 - **Error boundary** — catches unexpected render errors app-wide
+- **Push tokens** — stored per-user with own-row RLS; read server-side by Edge Function using `service_role`
 
 ---
 
@@ -138,8 +146,6 @@ Key RPCs (all `SECURITY DEFINER`):
 
 ## Roadmap
 
-- Push notifications (game created, confirmed off waitlist, game cancelled)
-- Offline / network error states
 - Privacy Policy + Terms of Service screen
 - Recurring games
 - Player stats
