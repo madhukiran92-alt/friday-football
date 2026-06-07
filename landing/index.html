@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pitch — Organise your game</title>
+  <meta name="description" content="Pitch makes it easy to organise recreational sports games, manage your squad, and handle the waitlist automatically." />
+  <meta property="og:title" content="Pitch — Organise your game" />
+  <meta property="og:description" content="Create a game, invite players, let Pitch handle the rest." />
+  <meta property="og:url" content="https://pitchapp.net" />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏟</text></svg>" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:       #16a34a;
+      --green-deep:  #14532d;
+      --green-light: #dcfce7;
+      --ink:         #0f172a;
+      --ink-soft:    #1e293b;
+      --muted:       #64748b;
+      --subtle:      #94a3b8;
+      --bg:          #f8fafc;
+      --surface:     #ffffff;
+      --separator:   #e2e8f0;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--surface);
+      color: var(--ink-soft);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--separator);
+      padding: 0 24px;
+      height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo {
+      font-size: 20px; font-weight: 800; color: var(--ink);
+      letter-spacing: -0.5px; text-decoration: none;
+    }
+    .nav-logo span { color: var(--green); }
+    .nav-cta {
+      background: var(--green); color: #fff;
+      padding: 8px 20px; border-radius: 999px;
+      font-size: 14px; font-weight: 700;
+      text-decoration: none;
+      transition: opacity .15s;
+    }
+    .nav-cta:hover { opacity: 0.85; }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: calc(100vh - 60px);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 80px 24px 60px;
+      background: linear-gradient(160deg, #f0fdf4 0%, #ffffff 50%, #f8fafc 100%);
+      position: relative; overflow: hidden;
+    }
+
+    /* Subtle pitch lines background */
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(to right, rgba(22,163,74,.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(22,163,74,.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--green-light); color: var(--green-deep);
+      font-size: 13px; font-weight: 700; letter-spacing: 0.3px;
+      padding: 6px 14px; border-radius: 999px;
+      margin-bottom: 28px;
+    }
+
+    .hero h1 {
+      font-size: clamp(48px, 8vw, 84px);
+      font-weight: 900;
+      color: var(--ink);
+      letter-spacing: -3px;
+      line-height: 1.05;
+      margin-bottom: 24px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--green);
+    }
+
+    .hero-sub {
+      font-size: clamp(18px, 2.5vw, 22px);
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 44px;
+      line-height: 1.5;
+    }
+
+    .hero-buttons {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-store {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--ink); color: #fff;
+      padding: 14px 24px; border-radius: 14px;
+      text-decoration: none;
+      transition: transform .15s, box-shadow .15s;
+      box-shadow: 0 4px 14px rgba(0,0,0,.15);
+    }
+    .btn-store:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+    .btn-store.outline {
+      background: transparent; color: var(--ink);
+      border: 1.5px solid var(--separator);
+      box-shadow: none;
+    }
+    .btn-store.outline:hover { border-color: var(--ink); box-shadow: none; }
+    .btn-store-icon { font-size: 28px; line-height: 1; }
+    .btn-store-label { display: flex; flex-direction: column; text-align: left; }
+    .btn-store-sub { font-size: 11px; opacity: .7; font-weight: 500; }
+    .btn-store-name { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; }
+
+    .hero-note {
+      margin-top: 20px;
+      font-size: 13px; color: var(--subtle);
+    }
+
+    /* ── Phone mockup ── */
+    .phone-wrap {
+      margin-top: 72px;
+      position: relative; display: inline-block;
+    }
+    .phone {
+      width: 280px;
+      background: var(--ink);
+      border-radius: 44px;
+      padding: 14px;
+      box-shadow: 0 40px 80px rgba(0,0,0,.25), 0 0 0 1px rgba(255,255,255,.05);
+    }
+    .phone-screen {
+      background: #f8fafc;
+      border-radius: 32px;
+      overflow: hidden;
+      aspect-ratio: 9/19.5;
+      display: flex; flex-direction: column;
+    }
+    .phone-header {
+      background: #fff;
+      padding: 20px 18px 14px;
+      border-bottom: 1px solid var(--separator);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .phone-header-title { font-size: 17px; font-weight: 800; color: var(--ink); }
+    .phone-avatar {
+      width: 32px; height: 32px; border-radius: 16px;
+      background: var(--green-deep);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800; color: #fff;
+    }
+    .phone-card {
+      background: #fff;
+      margin: 12px;
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    .phone-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+    .phone-card-sport { font-size: 15px; }
+    .phone-card-title { font-size: 15px; font-weight: 800; color: var(--ink); }
+    .phone-card-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .phone-badge {
+      background: #dcfce7; color: #15803d;
+      font-size: 10px; font-weight: 700;
+      padding: 3px 8px; border-radius: 999px;
+    }
+    .phone-bar-wrap { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+    .phone-bar-track {
+      flex: 1; height: 5px; background: #f1f5f9;
+      border-radius: 999px; overflow: hidden;
+    }
+    .phone-bar-fill { height: 100%; background: var(--green); border-radius: 999px; }
+    .phone-bar-label { font-size: 11px; font-weight: 700; color: var(--muted); }
+    .phone-join-btn {
+      background: var(--green); border-radius: 10px;
+      padding: 9px; text-align: center;
+      font-size: 13px; font-weight: 700; color: #fff;
+    }
+    .phone-card2 { opacity: .55; }
+
+    /* ── Features ── */
+    .features {
+      padding: 100px 24px;
+      max-width: 1100px; margin: 0 auto;
+    }
+    .section-label {
+      text-align: center;
+      font-size: 12px; font-weight: 700; color: var(--green);
+      letter-spacing: 1.5px; text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .section-title {
+      text-align: center;
+      font-size: clamp(30px, 4vw, 44px);
+      font-weight: 900; color: var(--ink);
+      letter-spacing: -1.5px;
+      margin-bottom: 60px;
+      line-height: 1.15;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: var(--bg);
+      border: 1px solid var(--separator);
+      border-radius: 20px;
+      padding: 28px;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.07); }
+    .feature-icon {
+      font-size: 32px; margin-bottom: 16px;
+      display: block;
+    }
+    .feature-title {
+      font-size: 17px; font-weight: 800; color: var(--ink);
+      margin-bottom: 8px; letter-spacing: -0.3px;
+    }
+    .feature-desc {
+      font-size: 14px; color: var(--muted); line-height: 1.6;
+    }
+
+    /* ── Sports strip ── */
+    .sports-strip {
+      background: var(--green-deep);
+      padding: 40px 24px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .sports-strip p {
+      font-size: 13px; font-weight: 700; color: rgba(255,255,255,.5);
+      letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 20px;
+    }
+    .sports-list {
+      display: flex; flex-wrap: wrap;
+      justify-content: center; gap: 12px;
+    }
+    .sport-pill {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 14px; font-weight: 600; color: #fff;
+    }
+
+    /* ── How it works ── */
+    .how {
+      padding: 100px 24px;
+      max-width: 800px; margin: 0 auto;
+      text-align: center;
+    }
+    .steps {
+      display: flex; flex-direction: column; gap: 0;
+      margin-top: 48px; text-align: left;
+    }
+    .step {
+      display: flex; gap: 24px;
+      padding-bottom: 36px;
+      position: relative;
+    }
+    .step:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      left: 19px; top: 40px; bottom: 0;
+      width: 2px; background: var(--separator);
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 40px; height: 40px; border-radius: 20px;
+      background: var(--green); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 800;
+      position: relative; z-index: 1;
+    }
+    .step-body {}
+    .step-title { font-size: 18px; font-weight: 800; color: var(--ink); margin-bottom: 6px; letter-spacing: -0.3px; }
+    .step-desc { font-size: 15px; color: var(--muted); line-height: 1.6; }
+
+    /* ── CTA ── */
+    .cta-section {
+      background: linear-gradient(135deg, var(--green-deep) 0%, #166534 100%);
+      padding: 100px 24px;
+      text-align: center;
+    }
+    .cta-section h2 {
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 900; color: #fff;
+      letter-spacing: -2px; line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .cta-section p {
+      font-size: 18px; color: rgba(255,255,255,.65);
+      margin-bottom: 44px;
+    }
+    .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-white {
+      display: flex; align-items: center; gap: 10px;
+      background: #fff; color: var(--ink);
+      padding: 14px 24px; border-radius: 14px;
+      text-decoration: none; font-weight: 800;
+      transition: transform .15s, box-shadow .15s;
+      box-shadow: 0 4px 14px rgba(0,0,0,.2);
+    }
+    .btn-white:hover { transform: translateY(-2px); }
+    .btn-outline-white {
+      display: flex; align-items: center; gap: 10px;
+      background: transparent; color: #fff;
+      padding: 14px 24px; border-radius: 14px;
+      text-decoration: none; font-weight: 700;
+      border: 1.5px solid rgba(255,255,255,.3);
+      transition: border-color .15s;
+    }
+    .btn-outline-white:hover { border-color: rgba(255,255,255,.7); }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--ink);
+      padding: 48px 24px;
+      text-align: center;
+    }
+    .footer-logo {
+      font-size: 22px; font-weight: 800; color: #fff;
+      letter-spacing: -0.5px; margin-bottom: 6px;
+    }
+    .footer-logo span { color: #4ade80; }
+    .footer-by { font-size: 13px; color: rgba(255,255,255,.4); margin-bottom: 24px; }
+    .footer-links {
+      display: flex; gap: 20px; justify-content: center;
+      flex-wrap: wrap; margin-bottom: 28px;
+    }
+    .footer-links a { font-size: 13px; color: rgba(255,255,255,.45); text-decoration: none; }
+    .footer-links a:hover { color: rgba(255,255,255,.8); }
+    .footer-copy { font-size: 12px; color: rgba(255,255,255,.25); }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .phone { width: 240px; }
+      .btn-store { padding: 12px 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <a href="/" class="nav-logo">Pitch<span>.</span></a>
+    <a href="#download" class="nav-cta">Get the app</a>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">🏟 Now available on iOS &amp; Android</div>
+    <h1>Organise your<br><em>game.</em></h1>
+    <p class="hero-sub">
+      Create a game, invite your squad, and let Pitch handle sign-ups,
+      the waitlist, and team splits — for any sport.
+    </p>
+    <div class="hero-buttons" id="download">
+      <a href="#" class="btn-store">
+        <span class="btn-store-icon">🍎</span>
+        <span class="btn-store-label">
+          <span class="btn-store-sub">Download on the</span>
+          <span class="btn-store-name">App Store</span>
+        </span>
+      </a>
+      <a href="#" class="btn-store outline">
+        <span class="btn-store-icon">🤖</span>
+        <span class="btn-store-label">
+          <span class="btn-store-sub">Get it on</span>
+          <span class="btn-store-name">Google Play</span>
+        </span>
+      </a>
+    </div>
+    <p class="hero-note">Free · No ads · Works offline</p>
+
+    <!-- Phone mockup -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="phone-header">
+            <span class="phone-header-title">Pitch</span>
+            <div class="phone-avatar">M</div>
+          </div>
+          <div style="padding: 4px 0; overflow: hidden;">
+            <div class="phone-card">
+              <div class="phone-card-top">
+                <div>
+                  <div style="display:flex;align-items:center;gap:5px">
+                    <span class="phone-card-sport">⚽</span>
+                    <span class="phone-card-title">Saturday Footy</span>
+                  </div>
+                  <div class="phone-card-meta">📍 Victoria Park · Sat 9 Jun, 9am</div>
+                </div>
+                <span class="phone-badge">Open</span>
+              </div>
+              <div class="phone-bar-wrap">
+                <div class="phone-bar-track">
+                  <div class="phone-bar-fill" style="width:71%"></div>
+                </div>
+                <span class="phone-bar-label">10/14</span>
+              </div>
+              <div class="phone-join-btn">Join Game</div>
+            </div>
+            <div class="phone-card phone-card2">
+              <div class="phone-card-top">
+                <div>
+                  <div style="display:flex;align-items:center;gap:5px">
+                    <span class="phone-card-sport">🏀</span>
+                    <span class="phone-card-title">Lunch Hoops</span>
+                  </div>
+                  <div class="phone-card-meta">📍 CBD Courts · Fri 14 Jun, 12pm</div>
+                </div>
+                <span class="phone-badge">Open</span>
+              </div>
+              <div class="phone-bar-wrap">
+                <div class="phone-bar-track">
+                  <div class="phone-bar-fill" style="width:40%"></div>
+                </div>
+                <span class="phone-bar-label">4/10</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sports strip -->
+  <div class="sports-strip">
+    <p>Works for any sport</p>
+    <div class="sports-list">
+      <div class="sport-pill"><span>⚽</span> Football</div>
+      <div class="sport-pill"><span>🏀</span> Basketball</div>
+      <div class="sport-pill"><span>🏏</span> Cricket</div>
+      <div class="sport-pill"><span>🎾</span> Tennis</div>
+      <div class="sport-pill"><span>🏉</span> Rugby</div>
+      <div class="sport-pill"><span>🏐</span> Volleyball</div>
+      <div class="sport-pill"><span>🏟</span> + more</div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <section class="features">
+    <p class="section-label">Features</p>
+    <h2 class="section-title">Everything your game needs</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">📋</span>
+        <div class="feature-title">Game feed</div>
+        <p class="feature-desc">See all upcoming games at a glance — capacity, location, date, and who's already in.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⏳</span>
+        <div class="feature-title">Smart waitlist</div>
+        <p class="feature-desc">Game full? Join the waitlist. When someone drops out, you're automatically promoted — no chasing the group chat.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔔</span>
+        <div class="feature-title">Push notifications</div>
+        <p class="feature-desc">Get notified when you're added to a game, confirmed off the waitlist, or a game is cancelled.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">👥</span>
+        <div class="feature-title">Team generator</div>
+        <p class="feature-desc">Balanced random team splits generated in one tap. Teams are saved so everyone can check on match day.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔑</span>
+        <div class="feature-title">Invite-only admins</div>
+        <p class="feature-desc">Admins are added via one-time invite codes. Players just sign up — no password, no fuss.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <div class="feature-title">Real-time updates</div>
+        <p class="feature-desc">Player lists update live as people join or leave. Everyone always sees the same thing.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="how">
+    <p class="section-label">How it works</p>
+    <h2 class="section-title">Up and running in minutes</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Admin creates a game</div>
+          <p class="step-desc">Pick the sport, set the date, location, and max players. Pre-add anyone you want — they'll get a notification immediately.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Players sign up</div>
+          <p class="step-desc">Players join with their phone number — one tap to join a game or the waitlist if it's full. No passwords, no friction.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Pitch handles the rest</div>
+          <p class="step-desc">Waitlist promotions happen automatically. Generate balanced teams on match day. Done.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <h2>Ready to run<br>a better game?</h2>
+    <p>Free to download. No subscription required.</p>
+    <div class="cta-buttons">
+      <a href="#" class="btn-white">
+        <span style="font-size:22px">🍎</span>
+        <span style="font-size:16px;font-weight:800;">App Store</span>
+      </a>
+      <a href="#" class="btn-outline-white">
+        <span style="font-size:22px">🤖</span>
+        <span style="font-size:16px;font-weight:700;">Google Play</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-logo">Pitch<span>.</span></div>
+    <div class="footer-by">A product of Nila · pitchapp.net</div>
+    <div class="footer-links">
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Terms of Service</a>
+      <a href="mailto:hello@pitchapp.net">Contact</a>
+    </div>
+    <div class="footer-copy">© 2026 Nila. All rights reserved.</div>
+  </footer>
+
+</body>
+</html>
