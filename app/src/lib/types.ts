@@ -25,6 +25,7 @@ export type Game = {
   status: GameStatus;
   created_by: string;
   created_at: string;
+  sport: string;
 };
 
 export type RegistrationStatus = 'confirmed' | 'waitlist';

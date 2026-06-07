@@ -1,31 +1,34 @@
-# Friday Football ⚽
+# Pitch
 
-A mobile app for organising casual Friday football games. Players can sign up, join games, and see their teams — admins manage everything from creating games to generating balanced teams.
+Organise, join and play recreational sport with your crew.
 
-Built with Expo (React Native) and Supabase.
+Pitch is a mobile app (iOS + Android) for managing casual sports games — create a game, invite players, handle the waitlist automatically, and generate balanced teams. Built for any sport: football, basketball, cricket, tennis, and more.
 
 ---
 
 ## Features
 
-- **Game feed** — see all upcoming games, capacity, and who's playing
-- **Join / leave** — one tap to join a game or join the waitlist if it's full
-- **Waitlist** — automatic promotion when a spot opens up
-- **Teams** — admins generate balanced teams from confirmed players
-- **Admin portal** — create and edit games, manage players, add/remove admins
-- **Real-time updates** — player list updates live as people join or leave
+- **Multi-sport** — football, basketball, cricket, tennis, rugby, volleyball and more
+- **Game feed** — see all upcoming games, capacity bar, and who's playing
+- **Join / leave** — one tap to join a game or the waitlist if it's full
+- **Waitlist** — automatic promotion when a spot opens, handled atomically server-side
+- **Team generation** — balanced random splits, saved per game
+- **Admin system** — invite-only admin accounts via one-time codes
+- **Admin portal** — create/edit games, manage players, generate teams, manage admins
+- **Real-time updates** — player list syncs live as people join or leave
+- **Bottom tab navigation** — instant switching between Games and Admin views
 
 ---
 
 ## Tech stack
 
-| Layer | Tech |
+| Layer | Technology |
 |---|---|
-| Mobile app | Expo 56 + React Native 0.85 |
-| Routing | Expo Router (file-based) |
-| Backend | Supabase (Postgres + Auth + Realtime) |
-| Auth | Email / password |
-| Deployment | EAS Build + TestFlight |
+| Mobile | React Native + Expo SDK 56 |
+| Routing | Expo Router v4 (file-based) |
+| Backend | Supabase (Postgres, Auth, RLS, Realtime) |
+| Language | TypeScript |
+| Builds | EAS Build |
 
 ---
 
@@ -35,7 +38,7 @@ Built with Expo (React Native) and Supabase.
 
 - Node.js 18+
 - Expo CLI (`npm install -g expo-cli`)
-- A [Supabase](https://supabase.com) account
+- A [Supabase](https://supabase.com) project
 
 ### 1. Clone and install
 
@@ -45,11 +48,7 @@ cd friday-football/app
 npm install
 ```
 
-### 2. Set up Supabase
-
-Follow [`SUPABASE_SETUP.md`](SUPABASE_SETUP.md) to create your project, run the schema, and enable auth.
-
-### 3. Configure environment
+### 2. Configure environment
 
 Create `app/.env`:
 
@@ -58,13 +57,12 @@ EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-### 4. Run the app
+### 3. Run
 
 ```bash
-cd app
-npm start          # Expo dev server
-npm run ios        # iOS simulator
-npm run android    # Android emulator
+npx expo start       # Expo dev server — scan QR with Expo Go
+npx expo run:ios     # iOS simulator
+npx expo run:android # Android emulator
 ```
 
 ---
@@ -75,27 +73,76 @@ npm run android    # Android emulator
 friday-football/
 ├── app/
 │   ├── app/
-│   │   ├── (auth)/          # Login + onboarding screens
-│   │   └── (app)/           # Main app screens
-│   │       ├── home.tsx     # Game feed
-│   │       ├── profile.tsx  # User profile
-│   │       ├── teams.tsx    # Team viewer
-│   │       └── admin/       # Admin portal
+│   │   ├── (auth)/              # Login + name/invite onboarding
+│   │   └── (app)/               # Authenticated screens
+│   │       ├── home.tsx         # Game feed (players)
+│   │       ├── profile.tsx      # User profile
+│   │       ├── teams.tsx        # Team viewer
+│   │       └── admin/           # Admin portal
+│   │           ├── index.tsx    # Dashboard with stats + game picker
+│   │           ├── create-game.tsx
+│   │           ├── edit-game.tsx
+│   │           ├── manage-game.tsx
+│   │           ├── generate-teams.tsx
+│   │           └── manage-admins.tsx
 │   ├── src/
-│   │   ├── context/         # Auth context
-│   │   └── lib/             # Supabase client, types, theme
-│   └── assets/
-├── supabase/
-│   └── schema.sql           # Full database schema
-├── SUPABASE_SETUP.md
-└── TESTFLIGHT_SETUP.md
+│   │   ├── context/             # AuthContext (session, profile, isAdmin)
+│   │   ├── lib/                 # Supabase client, theme constants, types
+│   │   └── components/          # ErrorBoundary
+│   └── assets/                  # App icon, splash screen
 ```
 
 ---
 
-## Contributing
+## Database
 
-`main` is protected — open a pull request and request a review. Direct pushes are blocked.
+Key tables:
+
+| Table | Purpose |
+|---|---|
+| `profiles` | User display names (linked to `auth.users`) |
+| `games` | Game details — title, sport, location, date, max players, status |
+| `registrations` | Player sign-ups with confirmed / waitlist status and position |
+| `admins` | Admin role assignments |
+| `admin_invites` | One-time codes for granting admin access |
+| `teams` + `team_members` | Generated team assignments per game |
+
+Key RPCs (all `SECURITY DEFINER`):
+
+| Function | Purpose |
+|---|---|
+| `join_game(p_game_id)` | Atomic join with waitlist logic and row-level locking |
+| `leave_game(p_registration_id)` | Remove player and promote first waitlisted user |
+| `redeem_admin_invite(p_code)` | Validate and consume a one-time invite code |
+| `is_admin()` | Returns true if the calling user is in the `admins` table |
+
+---
+
+## Security
+
+- **RLS enabled** on all 7 public tables
+- **Anon key only** in the client — `service_role` never leaves the server
+- **Phone/email protected** — `profiles_public` view masks other users' contact details; only your own phone/email is returned. Column-level `SELECT` revoked on base table for `authenticated` role.
+- **Waitlist integrity** — direct `UPDATE`/`DELETE` on `registrations` restricted to admins; players must go through `join_game`/`leave_game` RPCs so queue logic always runs atomically
+- **Admin invite codes** — single-use, row-locked on redemption to prevent race conditions
+- **Error boundary** — catches unexpected render errors app-wide
+
+---
+
+## Distribution
+
+- **iOS** — `eas build --platform ios`, distribute via TestFlight or App Store
+- **Android** — `eas build --platform android`, share APK directly or publish to Play Store
+
+---
+
+## Roadmap
+
+- Push notifications (game created, confirmed off waitlist, game cancelled)
+- Offline / network error states
+- Privacy Policy + Terms of Service screen
+- Recurring games
+- Player stats
 
 ---
 

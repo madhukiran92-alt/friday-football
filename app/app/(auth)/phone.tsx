@@ -43,9 +43,9 @@ export default function LoginScreen() {
           {/* Logo section */}
           <View style={styles.logoSection}>
             <View style={styles.logoCircle}>
-              <Text style={styles.logoEmoji}>⚽</Text>
+              <Text style={styles.logoEmoji}>🏟</Text>
             </View>
-            <Text style={styles.appName}>Friday Football</Text>
+            <Text style={styles.appName}>Pitch</Text>
             <Text style={styles.tagline}>Organise, join & play.</Text>
           </View>
 

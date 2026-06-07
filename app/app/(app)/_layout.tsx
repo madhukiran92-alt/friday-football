@@ -36,7 +36,7 @@ export default function AppLayout() {
         name="home"
         options={{
           title: 'Games',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="⚽" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🏟" focused={focused} />,
         }}
       />
       <Tabs.Screen

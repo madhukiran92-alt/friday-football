@@ -47,7 +47,7 @@ export default function ManageAdminsScreen() {
   async function searchPlayers(query: string) {
     setSearch(query);
     if (query.length < 2) { setResults([]); return; }
-    const { data } = await supabase.from('profiles').select('*').ilike('name', `%${query}%`).limit(10);
+    const { data } = await supabase.from('profiles_public').select('*').ilike('name', `%${query}%`).limit(10);
     const adminIds = admins.map(a => a.profile_id);
     setResults((data ?? []).filter(p => !adminIds.includes(p.id)));
   }

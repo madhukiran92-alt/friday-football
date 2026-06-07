@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Friday Football",
-    "slug": "friday-football",
-    "scheme": "friday-football",
+    "name": "Pitch",
+    "slug": "pitch-app",
+    "scheme": "pitch",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.madhukiran.fridayfootball",
+      "bundleIdentifier": "com.madhukiran.pitch",
       "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false

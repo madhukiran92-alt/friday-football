@@ -28,7 +28,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
     return (
       <SafeAreaView style={s.root}>
         <View style={s.content}>
-          <Text style={s.emoji}>⚽</Text>
+          <Text style={s.emoji}>🏟</Text>
           <Text style={s.title}>Something went wrong</Text>
           <Text style={s.sub}>
             The app hit an unexpected error. Your data is safe — tap below to try again.

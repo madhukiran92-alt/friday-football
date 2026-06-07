@@ -131,7 +131,7 @@ export default function HomeScreen() {
       {/* ── Minimal white top bar ── */}
       <SafeAreaView style={styles.headerSafe}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>⚽  Friday Football</Text>
+          <Text style={styles.headerTitle}>Pitch</Text>
           <TouchableOpacity style={styles.avatarBtn} onPress={() => router.push('/(app)/profile')} activeOpacity={0.75}>
             <Text style={styles.avatarBtnText}>{profile?.name?.charAt(0).toUpperCase() ?? '?'}</Text>
           </TouchableOpacity>
@@ -146,7 +146,7 @@ export default function HomeScreen() {
       >
         {games.length === 0 ? (
           <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>⚽</Text>
+            <Text style={styles.emptyEmoji}>🏟</Text>
             <Text style={styles.emptyTitle}>No games scheduled</Text>
             <Text style={styles.emptySub}>Games will appear here when they're created.</Text>
             {isAdmin && (
@@ -188,6 +188,11 @@ type CardProps = {
   onReopen: (g: GameWithRegs) => void;
 };
 
+const SPORT_EMOJI: Record<string, string> = {
+  football: '⚽', basketball: '🏀', cricket: '🏏',
+  tennis: '🎾', rugby: '🏉', volleyball: '🏐', other: '🏟',
+};
+
 const STATUS_BADGE = {
   open:      { bg: C.openBg,      text: C.openText      },
   closed:    { bg: C.closedBg,    text: C.closedText    },
@@ -216,7 +221,10 @@ function GameCard({ game, profileId, isAdmin, joiningId, onJoin, onLeave, onCanc
       {/* Title + badge */}
       <View style={styles.cardHead}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.cardTitle}>{game.title}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+            {game.sport && <Text style={styles.sportEmoji}>{SPORT_EMOJI[game.sport] ?? '🏟'}</Text>}
+            <Text style={styles.cardTitle}>{game.title}</Text>
+          </View>
           <Text style={styles.cardMeta}>
             {game.location ? `📍 ${game.location}  ·  ` : ''}🗓 {dateStr}
           </Text>
@@ -377,7 +385,8 @@ const styles = StyleSheet.create({
   cardCancelled: { opacity: 0.55 },
 
   cardHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 16, paddingBottom: 10 },
-  cardTitle: { fontSize: 20, fontWeight: '800', color: C.ink, letterSpacing: -0.3, marginBottom: 4 },
+  sportEmoji: { fontSize: 18 },
+  cardTitle: { fontSize: 20, fontWeight: '800', color: C.ink, letterSpacing: -0.3 },
   cardMeta: { fontSize: 13, color: C.muted, lineHeight: 18 },
 
   statusBadge: { borderRadius: C.rFull, paddingHorizontal: 10, paddingVertical: 5, alignSelf: 'flex-start' },

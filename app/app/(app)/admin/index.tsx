@@ -172,7 +172,7 @@ export default function AdminIndexScreen() {
               {/* ── Empty / pick state ── */}
               <View style={styles.heroCard}>
                 <View style={styles.heroIconWrap}>
-                  <Text style={styles.heroIcon}>⚽</Text>
+                  <Text style={styles.heroIcon}>🏟</Text>
                 </View>
                 <Text style={styles.heroTitle}>Pick a game</Text>
                 <Text style={styles.heroSub}>Open the sidebar to select a game, or create a brand new one.</Text>

@@ -44,7 +44,7 @@ export default function ManageGameScreen() {
     setSearch(query);
     if (query.length < 2) { setSearchResults([]); return; }
     const { data } = await supabase
-      .from('profiles')
+      .from('profiles_public')
       .select('*')
       .ilike('name', `%${query}%`)
       .limit(10);
