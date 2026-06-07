@@ -58,7 +58,7 @@ export default function AdminIndexScreen() {
 
   const openCount = games.filter(g => g.status === 'open' && g.scheduled_at >= now).length;
   const upcomingCount = games.filter(g => g.scheduled_at >= now).length;
-  const totalPlayers = games.reduce((s, g) => s + g.confirmed, 0);
+  const totalGames = games.length;
 
   const statusDot = (s: string) => {
     if (s === 'open') return C.green;
@@ -171,7 +171,7 @@ export default function AdminIndexScreen() {
               <View style={styles.statRow}>
                 <StatCard value={openCount} label="Open" color={C.green} bg={C.greenUltra} />
                 <StatCard value={upcomingCount} label="Upcoming" color={C.indigo} bg={C.indigoLight} />
-                <StatCard value={totalPlayers} label="Players" color={C.amber} bg={C.amberLight} />
+                <StatCard value={totalGames} label="Total" color={C.amber} bg={C.amberLight} />
               </View>
 
               {/* ── Empty / pick state ── */}
