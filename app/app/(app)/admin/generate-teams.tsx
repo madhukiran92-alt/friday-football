@@ -42,7 +42,7 @@ export default function GenerateTeamsScreen() {
     setTeams([]);
     const { data } = await supabase
       .from('registrations')
-      .select('*, profile:profiles(id, name)')
+      .select('*, profile:profiles!registrations_profile_id_fkey(id, name)')
       .eq('game_id', game.id)
       .eq('status', 'confirmed')
       .order('position', { ascending: true });

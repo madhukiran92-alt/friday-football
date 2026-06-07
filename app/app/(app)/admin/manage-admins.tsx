@@ -18,7 +18,7 @@ export default function ManageAdminsScreen() {
   async function fetchAdmins() {
     const { data } = await supabase
       .from('admins')
-      .select('*, profile:profiles(id, name, phone)')
+      .select('*, profile:profiles!admins_profile_id_fkey(id, name, phone)')
       .order('created_at', { ascending: true });
     setAdmins(data ?? []);
     setLoading(false);

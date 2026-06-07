@@ -39,7 +39,7 @@ export default function HomeScreen() {
     const enriched = await Promise.all(gamesData.map(async (game) => {
       const { data: regs } = await supabase
         .from('registrations')
-        .select('*, profile:profiles(id, name)')
+        .select('*, profile:profiles!registrations_profile_id_fkey(id, name)')
         .eq('game_id', game.id)
         .order('position', { ascending: true });
       const all = regs ?? [];

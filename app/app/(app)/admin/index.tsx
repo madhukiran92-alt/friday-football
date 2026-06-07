@@ -191,7 +191,7 @@ function GameDetail({ game, onRefresh, onDeselect }: { game: GameWithCount; onRe
       setFetching(true);
       const { data } = await supabase
         .from('registrations')
-        .select('*, profile:profiles(id, name)')
+        .select('*, profile:profiles!registrations_profile_id_fkey(id, name)')
         .eq('game_id', game.id)
         .order('position', { ascending: true });
       const all = data ?? [];
