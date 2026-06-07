@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   Alert, ActivityIndicator, ScrollView, RefreshControl,
-  StatusBar, SafeAreaView,
+  StatusBar, SafeAreaView, Modal, Animated, Pressable,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';
@@ -23,6 +23,8 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [joiningId, setJoiningId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const slideAnim = useRef(new Animated.Value(280)).current;
 
   useEffect(() => { profileIdRef.current = profile?.id; }, [profile?.id]);
 
@@ -63,7 +65,6 @@ export default function HomeScreen() {
     if (profile?.id) { profileIdRef.current = profile.id; load(); }
   }, [profile?.id]);
 
-  // Re-fetch whenever this screen comes into focus (e.g. after creating a game)
   useFocusEffect(useCallback(() => {
     if (profileIdRef.current) fetchGames();
   }, [fetchGames]));
@@ -75,6 +76,15 @@ export default function HomeScreen() {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [fetchGames]);
+
+  function openSidebar() {
+    setSidebarOpen(true);
+    Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 20, stiffness: 180 }).start();
+  }
+
+  function closeSidebar() {
+    Animated.timing(slideAnim, { toValue: 280, useNativeDriver: true, duration: 220 }).start(() => setSidebarOpen(false));
+  }
 
   async function joinGame(game: GameWithRegs) {
     if (!profile) return;
@@ -120,41 +130,26 @@ export default function HomeScreen() {
 
   if (loading) return (
     <View style={styles.loadingWrap}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <ActivityIndicator size="large" color={C.green} />
     </View>
   );
 
-  const openCount = games.filter(g => g.status === 'open').length;
-
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
-      {/* Deep green header */}
-      <View style={styles.headerBg}>
-        <SafeAreaView>
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.headerTitle}>Friday Football</Text>
-              <Text style={styles.headerSub}>
-                {openCount > 0 ? `${openCount} game${openCount !== 1 ? 's' : ''} open for signup` : 'No open games right now'}
-              </Text>
-            </View>
-            <View style={styles.headerActions}>
-              {isAdmin && (
-                <TouchableOpacity style={styles.adminPill} onPress={() => router.push('/(app)/admin')} activeOpacity={0.8}>
-                  <Text style={styles.adminPillText}>Admin</Text>
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity style={styles.avatarBtn} onPress={() => router.push('/(app)/profile')} activeOpacity={0.8}>
-                <Text style={styles.avatarBtnText}>{profile?.name?.charAt(0).toUpperCase() ?? '?'}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </SafeAreaView>
-      </View>
+      {/* ── Minimal white top bar ── */}
+      <SafeAreaView style={styles.headerSafe}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>⚽  Friday Football</Text>
+          <TouchableOpacity style={styles.avatarBtn} onPress={openSidebar} activeOpacity={0.75}>
+            <Text style={styles.avatarBtnText}>{profile?.name?.charAt(0).toUpperCase() ?? '?'}</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
 
+      {/* ── Game list ── */}
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -188,7 +183,55 @@ export default function HomeScreen() {
         )}
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* ── Sidebar drawer ── */}
+      {sidebarOpen && (
+        <Modal transparent animationType="none" onRequestClose={closeSidebar}>
+          {/* Dim overlay */}
+          <Pressable style={styles.overlay} onPress={closeSidebar} />
+
+          {/* Drawer panel slides in from right */}
+          <Animated.View style={[styles.drawer, { transform: [{ translateX: slideAnim }] }]}>
+            <SafeAreaView style={{ flex: 1 }}>
+              {/* Avatar + name */}
+              <View style={styles.drawerProfile}>
+                <View style={styles.drawerAvatar}>
+                  <Text style={styles.drawerAvatarText}>{profile?.name?.charAt(0).toUpperCase() ?? '?'}</Text>
+                </View>
+                <Text style={styles.drawerName}>{profile?.name ?? 'Player'}</Text>
+                <Text style={styles.drawerPhone}>{profile?.phone ?? ''}</Text>
+              </View>
+
+              <View style={styles.drawerDivider} />
+
+              {/* Nav items */}
+              {isAdmin && (
+                <DrawerItem
+                  icon="🏟"
+                  label="Admin Portal"
+                  onPress={() => { closeSidebar(); setTimeout(() => router.push('/(app)/admin'), 250); }}
+                />
+              )}
+              <DrawerItem
+                icon="👤"
+                label="My Profile"
+                onPress={() => { closeSidebar(); setTimeout(() => router.push('/(app)/profile'), 250); }}
+              />
+            </SafeAreaView>
+          </Animated.View>
+        </Modal>
+      )}
     </View>
+  );
+}
+
+function DrawerItem({ icon, label, onPress }: { icon: string; label: string; onPress: () => void }) {
+  return (
+    <TouchableOpacity style={styles.drawerItem} onPress={onPress} activeOpacity={0.7}>
+      <Text style={styles.drawerItemIcon}>{icon}</Text>
+      <Text style={styles.drawerItemLabel}>{label}</Text>
+      <Text style={styles.drawerItemChevron}>›</Text>
+    </TouchableOpacity>
   );
 }
 
@@ -362,28 +405,20 @@ function AdminChip({ label, onPress, danger }: { label: string; onPress: () => v
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
-  loadingWrap: { flex: 1, backgroundColor: C.greenDeep, alignItems: 'center', justifyContent: 'center' },
+  loadingWrap: { flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' },
 
-  // Deep green header
-  headerBg: { backgroundColor: C.greenDeep },
+  // ── Minimal header ──
+  headerSafe: { backgroundColor: '#ffffff', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.separator },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 20, paddingTop: 8, paddingBottom: 20,
+    paddingHorizontal: 20, paddingVertical: 12,
   },
-  headerTitle: { fontSize: 26, fontWeight: '800', color: '#ffffff', letterSpacing: -0.5, marginBottom: 3 },
-  headerSub: { fontSize: 13, color: 'rgba(255,255,255,0.65)' },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  adminPill: {
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
-    borderRadius: C.rFull, paddingHorizontal: 14, paddingVertical: 7,
-  },
-  adminPillText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  headerTitle: { fontSize: 20, fontWeight: '800', color: C.ink, letterSpacing: -0.3 },
   avatarBtn: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: C.greenLight, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: C.greenDeep, alignItems: 'center', justifyContent: 'center',
   },
-  avatarBtnText: { fontSize: 15, fontWeight: '800', color: C.greenDeep },
+  avatarBtnText: { fontSize: 15, fontWeight: '800', color: '#fff' },
 
   scroll: { flex: 1 },
   scrollContent: { paddingTop: 16, paddingHorizontal: 16 },
@@ -395,7 +430,37 @@ const styles = StyleSheet.create({
   createBtn: { backgroundColor: C.green, borderRadius: C.rFull, paddingHorizontal: 28, paddingVertical: 13, ...C.shadow },
   createBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 
-  // Card
+  // ── Sidebar ──
+  overlay: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
+  drawer: {
+    position: 'absolute', top: 0, right: 0, bottom: 0,
+    width: 280, backgroundColor: '#ffffff',
+    shadowColor: '#000', shadowOffset: { width: -4, height: 0 }, shadowOpacity: 0.12, shadowRadius: 20, elevation: 16,
+  },
+  drawerProfile: {
+    alignItems: 'center', paddingTop: 40, paddingBottom: 24, paddingHorizontal: 24,
+  },
+  drawerAvatar: {
+    width: 64, height: 64, borderRadius: 32,
+    backgroundColor: C.greenDeep, alignItems: 'center', justifyContent: 'center', marginBottom: 12,
+  },
+  drawerAvatarText: { fontSize: 26, fontWeight: '800', color: '#fff' },
+  drawerName: { fontSize: 18, fontWeight: '800', color: C.ink, marginBottom: 2 },
+  drawerPhone: { fontSize: 13, color: C.muted },
+  drawerDivider: { height: StyleSheet.hairlineWidth, backgroundColor: C.separator, marginHorizontal: 20, marginBottom: 8 },
+
+  drawerItem: {
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+    paddingHorizontal: 24, paddingVertical: 16,
+  },
+  drawerItemIcon: { fontSize: 20, width: 28, textAlign: 'center' },
+  drawerItemLabel: { flex: 1, fontSize: 16, fontWeight: '600', color: C.ink },
+  drawerItemChevron: { fontSize: 22, color: C.subtle, fontWeight: '300' },
+
+  // ── Card ──
   card: { backgroundColor: C.surface, borderRadius: C.rLg, marginBottom: 14, overflow: 'hidden', ...C.shadow },
   cardCancelled: { opacity: 0.55 },
 
@@ -406,7 +471,6 @@ const styles = StyleSheet.create({
   statusBadge: { borderRadius: C.rFull, paddingHorizontal: 10, paddingVertical: 5, alignSelf: 'flex-start' },
   statusBadgeText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.1 },
 
-  // Capacity
   capRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingBottom: 14 },
   capTrack: { flex: 1, height: 6, backgroundColor: C.bg, borderRadius: C.rFull, overflow: 'hidden' },
   capFill: { height: '100%', backgroundColor: C.green, borderRadius: C.rFull },
@@ -421,7 +485,6 @@ const styles = StyleSheet.create({
   },
   waitBannerText: { fontSize: 13, fontWeight: '600', color: C.amber },
 
-  // Action
   actionBtn: { marginHorizontal: 16, marginBottom: 12, borderRadius: C.rMd, paddingVertical: 14, alignItems: 'center' },
   actionJoin: { backgroundColor: C.green },
   actionLeave: { backgroundColor: C.redLight, borderWidth: 1.5, borderColor: C.redBorder },
@@ -429,7 +492,6 @@ const styles = StyleSheet.create({
   actionText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   actionTextLeave: { color: C.red },
 
-  // Player chips
   playerSection: { paddingHorizontal: 16, paddingBottom: 12 },
   playerLabel: { fontSize: 11, fontWeight: '700', color: C.muted, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 },
   playerCount: { fontWeight: '500', color: C.subtle },
@@ -448,7 +510,6 @@ const styles = StyleSheet.create({
   playerName: { fontSize: 13, color: C.inkSoft, maxWidth: 90 },
   playerNameMe: { fontWeight: '700', color: C.green },
 
-  // Admin chips
   adminRow: {
     flexDirection: 'row', gap: 6, flexWrap: 'wrap',
     paddingHorizontal: 16, paddingBottom: 14, paddingTop: 6,
