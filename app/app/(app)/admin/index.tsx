@@ -10,7 +10,7 @@ import { supabase } from '../../../src/lib/supabase';
 import { Game } from '../../../src/lib/types';
 import { C } from '../../../src/lib/theme';
 
-const SIDEBAR_WIDTH = 240;
+const SIDEBAR_WIDTH = 260;
 
 type GameWithCount = Game & { confirmed: number; waitlist: number };
 type Tab = 'future' | 'past';
@@ -56,6 +56,10 @@ export default function AdminIndexScreen() {
   if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color={C.green} />;
   if (!isAdmin) return <Redirect href="/(app)/home" />;
 
+  const openCount = games.filter(g => g.status === 'open' && g.scheduled_at >= now).length;
+  const upcomingCount = games.filter(g => g.scheduled_at >= now).length;
+  const totalPlayers = games.reduce((s, g) => s + g.confirmed, 0);
+
   const statusDot = (s: string) => {
     if (s === 'open') return C.green;
     if (s === 'closed') return C.amber;
@@ -68,7 +72,7 @@ export default function AdminIndexScreen() {
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Sidebar */}
+      {/* ── Sidebar ── */}
       <Animated.View style={[styles.sidebar, { transform: [{ translateX: sidebarX }] }]}>
         <SafeAreaView style={{ flex: 1 }}>
           <View style={styles.sidebarHead}>
@@ -112,6 +116,7 @@ export default function AdminIndexScreen() {
                     {new Date(g.scheduled_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </Text>
                 </View>
+                {selectedGame?.id === g.id && <Text style={styles.activeCheck}>✓</Text>}
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -132,8 +137,10 @@ export default function AdminIndexScreen() {
         <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={toggleSidebar} />
       )}
 
-      {/* Main */}
+      {/* ── Main area ── */}
       <View style={styles.main}>
+
+        {/* White top bar — matches home screen */}
         <SafeAreaView style={styles.headerSafe}>
           <View style={styles.header}>
             <View style={styles.headerLeft}>
@@ -142,12 +149,9 @@ export default function AdminIndexScreen() {
                 <View style={[styles.hLine, { width: 14 }]} />
                 <View style={styles.hLine} />
               </TouchableOpacity>
-              <View>
-                <Text style={styles.headerSup}>Admin</Text>
-                <Text style={styles.headerTitle} numberOfLines={1}>
-                  {selectedGame ? selectedGame.title : 'Dashboard'}
-                </Text>
-              </View>
+              <Text style={styles.headerTitle}>
+                {selectedGame ? selectedGame.title : 'Admin'}
+              </Text>
             </View>
             <View style={styles.headerRight}>
               <TouchableOpacity style={styles.headerBtn} onPress={() => router.push('/(app)/admin/manage-admins')} activeOpacity={0.75}>
@@ -162,21 +166,74 @@ export default function AdminIndexScreen() {
 
         <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
           {!selectedGame ? (
-            <View style={styles.emptyState}>
-              <View style={styles.emptyIcon}>
-                <Text style={{ fontSize: 36 }}>⚽</Text>
+            <>
+              {/* ── Stat strip ── */}
+              <View style={styles.statRow}>
+                <StatCard value={openCount} label="Open" color={C.green} bg={C.greenUltra} />
+                <StatCard value={upcomingCount} label="Upcoming" color={C.indigo} bg={C.indigoLight} />
+                <StatCard value={totalPlayers} label="Players" color={C.amber} bg={C.amberLight} />
               </View>
-              <Text style={styles.emptyTitle}>Pick a game</Text>
-              <Text style={styles.emptySub}>Open the sidebar to select a game, or create a new one.</Text>
-              <TouchableOpacity style={styles.createBtn} onPress={() => router.push('/(app)/admin/create-game')} activeOpacity={0.8}>
-                <Text style={styles.createBtnText}>+ Create New Game</Text>
-              </TouchableOpacity>
-            </View>
+
+              {/* ── Empty / pick state ── */}
+              <View style={styles.heroCard}>
+                <View style={styles.heroIconWrap}>
+                  <Text style={styles.heroIcon}>⚽</Text>
+                </View>
+                <Text style={styles.heroTitle}>Pick a game</Text>
+                <Text style={styles.heroSub}>Open the sidebar to select a game, or create a brand new one.</Text>
+                <TouchableOpacity
+                  style={styles.createBtn}
+                  onPress={() => router.push('/(app)/admin/create-game')}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.createBtnText}>+ Create New Game</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* ── Recent games quick-access ── */}
+              {games.filter(g => g.scheduled_at >= now).length > 0 && (
+                <>
+                  <Text style={styles.sectionLabel}>Upcoming Games</Text>
+                  {games
+                    .filter(g => g.scheduled_at >= now)
+                    .slice(0, 3)
+                    .map(g => (
+                      <TouchableOpacity
+                        key={g.id}
+                        style={styles.quickCard}
+                        onPress={() => setSelectedGame(g)}
+                        activeOpacity={0.75}
+                      >
+                        <View style={[styles.quickDot, { backgroundColor: statusDot(g.status) }]} />
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.quickTitle}>{g.title}</Text>
+                          <Text style={styles.quickDate}>
+                            {new Date(g.scheduled_at).toLocaleString('en-AU', {
+                              weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+                            })}
+                          </Text>
+                        </View>
+                        <Text style={styles.quickCount}>{g.confirmed}/{g.max_players}</Text>
+                        <Text style={styles.quickChevron}>›</Text>
+                      </TouchableOpacity>
+                    ))}
+                </>
+              )}
+            </>
           ) : (
             <GameDetail game={selectedGame} onRefresh={fetchGames} onDeselect={() => setSelectedGame(null)} />
           )}
         </ScrollView>
       </View>
+    </View>
+  );
+}
+
+function StatCard({ value, label, color, bg }: { value: number; label: string; color: string; bg: string }) {
+  return (
+    <View style={[styles.statCard, { backgroundColor: bg }]}>
+      <Text style={[styles.statValue, { color }]}>{value}</Text>
+      <Text style={[styles.statLabel, { color }]}>{label}</Text>
     </View>
   );
 }
@@ -203,13 +260,14 @@ function GameDetail({ game, onRefresh, onDeselect }: { game: GameWithCount; onRe
   }, [game.id]);
 
   const statusMeta: Record<string, { bg: string; text: string; label: string }> = {
-    open:      { bg: C.greenLight, text: C.green, label: 'Open' },
-    closed:    { bg: C.amberLight, text: C.amber, label: 'Closed' },
-    completed: { bg: C.indigoLight, text: C.indigo, label: 'Completed' },
-    cancelled: { bg: C.redLight,   text: C.red,   label: 'Cancelled' },
+    open:      { bg: C.openBg,    text: C.openText,      label: 'Open' },
+    closed:    { bg: C.closedBg,  text: C.closedText,    label: 'Closed' },
+    completed: { bg: C.completedBg, text: C.completedText, label: 'Completed' },
+    cancelled: { bg: C.cancelledBg, text: C.cancelledText, label: 'Cancelled' },
   };
   const sm = statusMeta[game.status] ?? { bg: C.bg, text: C.muted, label: game.status };
   const fillPct = Math.min(game.confirmed / game.max_players, 1);
+  const isFull = game.confirmed >= game.max_players;
 
   return (
     <View>
@@ -217,7 +275,7 @@ function GameDetail({ game, onRefresh, onDeselect }: { game: GameWithCount; onRe
         <Text style={styles.breadcrumbText}>← All games</Text>
       </TouchableOpacity>
 
-      {/* Overview */}
+      {/* Overview card */}
       <View style={styles.detailCard}>
         <View style={styles.detailTitleRow}>
           <Text style={styles.detailTitle}>{game.title}</Text>
@@ -231,55 +289,55 @@ function GameDetail({ game, onRefresh, onDeselect }: { game: GameWithCount; onRe
             weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
           })}
         </Text>
+
+        {/* Capacity */}
         <View style={styles.capacityRow}>
           <View style={styles.capTrack}>
-            <View style={[styles.capFill, { width: `${fillPct * 100}%` as any }]} />
+            <View style={[styles.capFill, { width: `${fillPct * 100}%` as any }, isFull && styles.capFillFull]} />
           </View>
-          <Text style={styles.capLabel}>{game.confirmed} / {game.max_players}</Text>
+          <Text style={[styles.capLabel, isFull && { color: C.red }]}>{game.confirmed} / {game.max_players}</Text>
           {game.waitlist > 0 && (
-            <View style={styles.waitPill}>
-              <Text style={styles.waitPillText}>+{game.waitlist}</Text>
-            </View>
+            <View style={styles.waitPill}><Text style={styles.waitPillText}>+{game.waitlist}</Text></View>
           )}
         </View>
       </View>
 
-      {/* Actions */}
-      <Text style={styles.listHeader}>Actions</Text>
+      {/* Action grid */}
+      <Text style={styles.sectionLabel}>Actions</Text>
       <View style={styles.actionGrid}>
         {game.status !== 'cancelled' && (
           <>
-            <ActionCard emoji="👤" label="Manage Players"
+            <ActionCard emoji="👥" label="Players" color="#3b82f6" bg="#eff6ff"
               onPress={() => router.push({ pathname: '/(app)/admin/manage-game', params: { gameId: game.id } })} />
-            <ActionCard emoji="✏️" label="Edit Game"
+            <ActionCard emoji="✏️" label="Edit" color="#8b5cf6" bg="#f5f3ff"
               onPress={() => router.push({ pathname: '/(app)/admin/edit-game', params: { gameId: game.id } })} />
           </>
         )}
         {(game.status === 'open' || game.status === 'closed') && (
-          <ActionCard emoji="🎲" label="Generate Teams"
+          <ActionCard emoji="🎲" label="Teams" color="#f59e0b" bg="#fffbeb"
             onPress={() => router.push({ pathname: '/(app)/admin/generate-teams', params: { gameId: game.id } })} />
         )}
         {game.status === 'cancelled' && (
-          <ActionCard emoji="🔄" label="Reopen Game" onPress={async () => {
+          <ActionCard emoji="🔄" label="Reopen" color={C.green} bg={C.greenUltra} onPress={async () => {
             const { error } = await supabase.from('games').update({ status: 'open' }).eq('id', game.id);
             if (!error) onRefresh();
           }} />
         )}
       </View>
 
-      {/* Players */}
+      {/* Player list */}
       {fetching ? (
         <ActivityIndicator color={C.green} style={{ marginTop: 20 }} />
       ) : (
         <>
-          <Text style={styles.listHeader}>Confirmed ({confirmed.length})</Text>
+          <Text style={styles.sectionLabel}>Confirmed ({confirmed.length})</Text>
           {confirmed.length === 0
             ? <Text style={styles.listEmpty}>No confirmed players yet.</Text>
             : confirmed.map((r, i) => <PlayerRow key={r.id} name={r.profile?.name ?? '?'} num={i + 1} />)
           }
           {waitlist.length > 0 && (
             <>
-              <Text style={[styles.listHeader, { marginTop: 20 }]}>Waitlist ({waitlist.length})</Text>
+              <Text style={[styles.sectionLabel, { marginTop: 20 }]}>Waitlist ({waitlist.length})</Text>
               {waitlist.map((r, i) => <PlayerRow key={r.id} name={r.profile?.name ?? '?'} num={i + 1} wait />)}
             </>
           )}
@@ -289,11 +347,13 @@ function GameDetail({ game, onRefresh, onDeselect }: { game: GameWithCount; onRe
   );
 }
 
-function ActionCard({ emoji, label, onPress }: { emoji: string; label: string; onPress: () => void }) {
+function ActionCard({ emoji, label, color, bg, onPress }: {
+  emoji: string; label: string; color: string; bg: string; onPress: () => void;
+}) {
   return (
-    <TouchableOpacity style={styles.actionCard} onPress={onPress} activeOpacity={0.75}>
+    <TouchableOpacity style={[styles.actionCard, { backgroundColor: bg }]} onPress={onPress} activeOpacity={0.75}>
       <Text style={styles.actionCardEmoji}>{emoji}</Text>
-      <Text style={styles.actionCardLabel}>{label}</Text>
+      <Text style={[styles.actionCardLabel, { color }]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -307,7 +367,7 @@ function PlayerRow({ name, num, wait }: { name: string; num: number; wait?: bool
         </Text>
       </View>
       <Text style={styles.playerName}>{name}</Text>
-      <Text style={styles.playerNum}>{num}</Text>
+      <Text style={[styles.playerNum, wait && { color: C.amber }]}>#{num}</Text>
     </View>
   );
 }
@@ -315,7 +375,7 @@ function PlayerRow({ name, num, wait }: { name: string; num: number; wait?: bool
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
 
-  // Sidebar
+  // ── Sidebar ──
   sidebar: {
     position: 'absolute', top: 0, bottom: 0, left: 0,
     width: SIDEBAR_WIDTH, backgroundColor: C.surface,
@@ -327,7 +387,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.separator,
   },
-  sidebarTitle: { fontSize: 20, fontWeight: '800', color: C.inkSoft },
+  sidebarTitle: { fontSize: 18, fontWeight: '800', color: C.ink },
   sidebarClose: {
     width: 28, height: 28, borderRadius: 14, backgroundColor: C.bg,
     alignItems: 'center', justifyContent: 'center',
@@ -336,7 +396,7 @@ const styles = StyleSheet.create({
 
   tabs: { flexDirection: 'row', padding: 10, gap: 6 },
   tab: { flex: 1, paddingVertical: 8, borderRadius: C.rSm, alignItems: 'center', backgroundColor: C.bg },
-  tabActive: { backgroundColor: C.green },
+  tabActive: { backgroundColor: C.greenDeep },
   tabText: { fontSize: 13, fontWeight: '600', color: C.muted },
   tabTextActive: { color: '#fff' },
 
@@ -344,13 +404,14 @@ const styles = StyleSheet.create({
   emptyList: { fontSize: 13, color: C.subtle, textAlign: 'center', marginTop: 20, paddingHorizontal: 16 },
   gameRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    paddingHorizontal: 16, paddingVertical: 11,
+    paddingHorizontal: 16, paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.separator,
   },
   gameRowActive: { backgroundColor: C.greenUltra },
   dot: { width: 8, height: 8, borderRadius: 4 },
-  gameRowTitle: { fontSize: 14, fontWeight: '600', color: C.inkSoft, marginBottom: 2 },
+  gameRowTitle: { fontSize: 14, fontWeight: '600', color: C.ink, marginBottom: 2 },
   gameRowDate: { fontSize: 11, color: C.muted },
+  activeCheck: { fontSize: 14, color: C.green, fontWeight: '700' },
 
   sidebarFooter: {
     padding: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.separator,
@@ -363,83 +424,115 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.35)', zIndex: 99,
   },
 
-  // Main
+  // ── Header — matches home screen white bar ──
   main: { flex: 1 },
-  headerSafe: { backgroundColor: C.greenDeep },
+  headerSafe: {
+    backgroundColor: '#ffffff',
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.separator,
+  },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 10,
-    backgroundColor: C.greenDeep,
+    paddingHorizontal: 16, paddingVertical: 12,
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   menuBtn: {
     width: 36, height: 36, borderRadius: C.rSm,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: C.bg,
     alignItems: 'center', justifyContent: 'center', gap: 4,
   },
-  hLine: { width: 18, height: 2, backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 2 },
-  headerSup: { fontSize: 11, fontWeight: '700', color: 'rgba(255,255,255,0.6)', letterSpacing: 0.5, textTransform: 'uppercase' },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: '#ffffff', maxWidth: 160 },
+  hLine: { width: 18, height: 2, backgroundColor: C.ink, borderRadius: 2 },
+  headerTitle: { fontSize: 20, fontWeight: '800', color: C.ink, maxWidth: 180, letterSpacing: -0.3 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   headerBtn: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: C.bg,
+    borderWidth: 1, borderColor: C.border,
     borderRadius: C.rFull, paddingHorizontal: 12, paddingVertical: 7,
   },
-  headerBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
-  headerBack: { fontSize: 13, color: C.greenLight, fontWeight: '600' },
+  headerBtnText: { color: C.inkSoft, fontWeight: '600', fontSize: 13 },
+  headerBack: { fontSize: 13, color: C.green, fontWeight: '600' },
 
   body: { flex: 1 },
   bodyContent: { padding: 16, paddingBottom: 48 },
 
-  emptyState: { alignItems: 'center', paddingTop: 60, paddingHorizontal: 24 },
-  emptyIcon: {
-    width: 76, height: 76, borderRadius: 20, backgroundColor: C.greenUltra,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 18,
+  // ── Stat strip ──
+  statRow: { flexDirection: 'row', gap: 10, marginBottom: 18 },
+  statCard: {
+    flex: 1, borderRadius: C.rMd, paddingVertical: 14, alignItems: 'center',
   },
-  emptyTitle: { fontSize: 22, fontWeight: '800', color: C.inkSoft, marginBottom: 8, letterSpacing: -0.3 },
-  emptySub: { fontSize: 14, color: C.muted, textAlign: 'center', lineHeight: 20, marginBottom: 24 },
-  createBtn: { backgroundColor: C.green, borderRadius: C.rFull, paddingHorizontal: 24, paddingVertical: 12 },
-  createBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  statValue: { fontSize: 28, fontWeight: '900', letterSpacing: -1 },
+  statLabel: { fontSize: 11, fontWeight: '700', marginTop: 2, opacity: 0.8 },
 
+  // ── Hero / pick-game card ──
+  heroCard: {
+    backgroundColor: C.surface, borderRadius: C.rXl,
+    padding: 28, alignItems: 'center', marginBottom: 22, ...C.shadow,
+  },
+  heroIconWrap: {
+    width: 72, height: 72, borderRadius: 22,
+    backgroundColor: C.greenUltra, alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+  },
+  heroIcon: { fontSize: 36 },
+  heroTitle: { fontSize: 22, fontWeight: '800', color: C.ink, marginBottom: 8, letterSpacing: -0.3 },
+  heroSub: { fontSize: 14, color: C.muted, textAlign: 'center', lineHeight: 20, marginBottom: 22 },
+  createBtn: { backgroundColor: C.green, borderRadius: C.rFull, paddingHorizontal: 28, paddingVertical: 13, ...C.shadow },
+  createBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+
+  // ── Quick access ──
+  sectionLabel: {
+    fontSize: 11, fontWeight: '700', color: C.muted,
+    letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 8,
+  },
+  quickCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: C.surface, borderRadius: C.rMd, padding: 14, marginBottom: 8, ...C.shadow,
+  },
+  quickDot: { width: 10, height: 10, borderRadius: 5 },
+  quickTitle: { fontSize: 15, fontWeight: '700', color: C.ink, marginBottom: 2 },
+  quickDate: { fontSize: 12, color: C.muted },
+  quickCount: { fontSize: 13, fontWeight: '700', color: C.muted },
+  quickChevron: { fontSize: 22, color: C.subtle, fontWeight: '300', marginLeft: 4 },
+
+  // ── Game detail ──
   breadcrumb: { marginBottom: 14 },
   breadcrumbText: { color: C.green, fontSize: 14, fontWeight: '600' },
 
   detailCard: { backgroundColor: C.surface, borderRadius: C.rLg, padding: 16, marginBottom: 18, ...C.shadow },
   detailTitleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 8, flexWrap: 'wrap' },
-  detailTitle: { flex: 1, fontSize: 20, fontWeight: '800', color: C.inkSoft, letterSpacing: -0.3 },
+  detailTitle: { flex: 1, fontSize: 20, fontWeight: '800', color: C.ink, letterSpacing: -0.3 },
   statusPill: { borderRadius: C.rFull, paddingHorizontal: 10, paddingVertical: 4 },
   statusPillText: { fontSize: 11, fontWeight: '700' },
   detailMeta: { fontSize: 13, color: C.muted, marginBottom: 4 },
   capacityRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
   capTrack: { flex: 1, height: 6, backgroundColor: C.bg, borderRadius: C.rFull, overflow: 'hidden' },
   capFill: { height: '100%', backgroundColor: C.green, borderRadius: C.rFull },
+  capFillFull: { backgroundColor: C.red },
   capLabel: { fontSize: 12, fontWeight: '700', color: C.muted },
   waitPill: { backgroundColor: C.amberLight, borderRadius: C.rFull, paddingHorizontal: 8, paddingVertical: 3 },
   waitPillText: { fontSize: 11, fontWeight: '700', color: C.amber },
 
-  listHeader: { fontSize: 11, fontWeight: '700', color: C.muted, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 },
   listEmpty: { fontSize: 13, color: C.subtle, fontStyle: 'italic', marginBottom: 8 },
 
-  actionGrid: { flexDirection: 'row', gap: 10, marginBottom: 22 },
+  actionGrid: { flexDirection: 'row', gap: 10, marginBottom: 22, flexWrap: 'wrap' },
   actionCard: {
-    flex: 1, backgroundColor: C.surface, borderRadius: C.rLg, padding: 16,
-    alignItems: 'center', ...C.shadow,
+    flex: 1, minWidth: 80, borderRadius: C.rLg, paddingVertical: 16,
+    alignItems: 'center',
   },
-  actionCardEmoji: { fontSize: 28, marginBottom: 8 },
-  actionCardLabel: { fontSize: 12, fontWeight: '700', color: C.inkSoft, textAlign: 'center' },
+  actionCardEmoji: { fontSize: 28, marginBottom: 6 },
+  actionCardLabel: { fontSize: 12, fontWeight: '800' },
 
   playerRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     backgroundColor: C.surface, borderRadius: C.rSm,
-    paddingVertical: 9, paddingHorizontal: 12, marginBottom: 4,
-    ...C.shadow,
+    paddingVertical: 10, paddingHorizontal: 12, marginBottom: 4, ...C.shadow,
   },
   playerRowWait: { backgroundColor: C.amberLight },
-  playerInit: { width: 30, height: 30, borderRadius: 15, backgroundColor: C.greenLight, alignItems: 'center', justifyContent: 'center' },
-  playerInitWait: { backgroundColor: C.amberBorder },
-  playerInitText: { fontSize: 13, fontWeight: '700', color: C.green },
-  playerInitTextWait: { color: C.amber },
-  playerName: { flex: 1, fontSize: 14, color: C.inkSoft },
-  playerNum: { fontSize: 12, color: C.subtle, fontWeight: '600' },
+  playerInit: {
+    width: 32, height: 32, borderRadius: 16,
+    backgroundColor: C.greenDeep, alignItems: 'center', justifyContent: 'center',
+  },
+  playerInitWait: { backgroundColor: C.amber },
+  playerInitText: { fontSize: 13, fontWeight: '800', color: '#fff' },
+  playerInitTextWait: { color: '#fff' },
+  playerName: { flex: 1, fontSize: 14, fontWeight: '600', color: C.ink },
+  playerNum: { fontSize: 12, color: C.subtle, fontWeight: '700' },
 });
