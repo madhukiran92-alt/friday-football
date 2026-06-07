@@ -9,6 +9,7 @@ import { supabase } from '../../src/lib/supabase';
 import { useAuth } from '../../src/context/AuthContext';
 import { Game, Registration } from '../../src/lib/types';
 import { C } from '../../src/lib/theme';
+import { NetworkError } from '../../src/components/NetworkError';
 
 type GameWithRegs = Game & {
   confirmed: Registration[];
@@ -22,35 +23,45 @@ export default function HomeScreen() {
   const [games, setGames] = useState<GameWithRegs[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const [joiningId, setJoiningId] = useState<string | null>(null);
 
   useEffect(() => { profileIdRef.current = profile?.id; }, [profile?.id]);
 
   const fetchGames = useCallback(async () => {
     const profileId = profileIdRef.current;
-    const { data: gamesData } = await supabase
+    const { data: gamesData, error: gamesError } = await supabase
       .from('games').select('*')
       .in('status', ['open', 'closed', 'completed', 'cancelled'])
       .gte('scheduled_at', new Date().toISOString())
       .order('scheduled_at', { ascending: true });
 
-    if (!gamesData) return;
+    if (gamesError || !gamesData) {
+      setFetchError(true);
+      return;
+    }
 
-    const enriched = await Promise.all(gamesData.map(async (game) => {
-      const { data: regs } = await supabase
-        .from('registrations')
-        .select('*, profile:profiles!registrations_profile_id_fkey(id, name)')
-        .eq('game_id', game.id)
-        .order('position', { ascending: true });
-      const all = regs ?? [];
-      return {
-        ...game,
-        confirmed: all.filter(r => r.status === 'confirmed'),
-        waitlist: all.filter(r => r.status === 'waitlist'),
-        myReg: profileId ? (all.find(r => r.profile_id === profileId) ?? null) : null,
-      };
-    }));
-    setGames(enriched);
+    try {
+      const enriched = await Promise.all(gamesData.map(async (game) => {
+        const { data: regs, error: regsError } = await supabase
+          .from('registrations')
+          .select('*, profile:profiles!registrations_profile_id_fkey(id, name)')
+          .eq('game_id', game.id)
+          .order('position', { ascending: true });
+        if (regsError) throw regsError;
+        const all = regs ?? [];
+        return {
+          ...game,
+          confirmed: all.filter(r => r.status === 'confirmed'),
+          waitlist: all.filter(r => r.status === 'waitlist'),
+          myReg: profileId ? (all.find(r => r.profile_id === profileId) ?? null) : null,
+        };
+      }));
+      setFetchError(false);
+      setGames(enriched);
+    } catch {
+      setFetchError(true);
+    }
   }, []);
 
   async function load(isRefresh = false) {
@@ -138,8 +149,13 @@ export default function HomeScreen() {
         </View>
       </SafeAreaView>
 
+      {/* ── Network error ── */}
+      {fetchError && (
+        <NetworkError onRetry={() => load()} />
+      )}
+
       {/* ── Game list ── */}
-      <ScrollView
+      {!fetchError && <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={C.green} />}
@@ -171,7 +187,7 @@ export default function HomeScreen() {
           ))
         )}
         <View style={{ height: 40 }} />
-      </ScrollView>
+      </ScrollView>}
 
     </View>
   );

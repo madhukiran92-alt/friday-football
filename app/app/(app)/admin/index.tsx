@@ -9,6 +9,7 @@ import { Redirect } from 'expo-router';
 import { supabase } from '../../../src/lib/supabase';
 import { Game } from '../../../src/lib/types';
 import { C } from '../../../src/lib/theme';
+import { NetworkError } from '../../../src/components/NetworkError';
 
 const SIDEBAR_WIDTH = 260;
 
@@ -23,6 +24,7 @@ export default function AdminIndexScreen() {
   const [games, setGames] = useState<GameWithCount[]>([]);
   const [selectedGame, setSelectedGame] = useState<GameWithCount | null>(null);
   const [gamesLoading, setGamesLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
 
   const toggleSidebar = () => {
     const toValue = sidebarOpen ? 0 : 1;
@@ -32,14 +34,20 @@ export default function AdminIndexScreen() {
 
   const fetchGames = useCallback(async () => {
     setGamesLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('games').select('*, registrations(status)').order('scheduled_at', { ascending: false });
-    const enriched = (data ?? []).map(g => ({
+    if (error || !data) {
+      setFetchError(true);
+      setGamesLoading(false);
+      return;
+    }
+    const enriched = data.map(g => ({
       ...g,
       confirmed: (g.registrations as any[]).filter((r: any) => r.status === 'confirmed').length,
       waitlist: (g.registrations as any[]).filter((r: any) => r.status === 'waitlist').length,
       registrations: undefined,
     })) as GameWithCount[];
+    setFetchError(false);
     setGames(enriched);
     setGamesLoading(false);
   }, []);
@@ -55,6 +63,17 @@ export default function AdminIndexScreen() {
 
   if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color={C.green} />;
   if (!isAdmin) return <Redirect href="/(app)/home" />;
+  if (fetchError) return (
+    <View style={styles.root}>
+      <StatusBar barStyle="dark-content" />
+      <SafeAreaView style={styles.headerSafe}>
+        <View style={styles.headerRow}>
+          <Text style={styles.headerTitle}>Admin</Text>
+        </View>
+      </SafeAreaView>
+      <NetworkError onRetry={fetchGames} />
+    </View>
+  );
 
   const openCount = games.filter(g => g.status === 'open' && g.scheduled_at >= now).length;
   const upcomingCount = games.filter(g => g.scheduled_at >= now).length;
