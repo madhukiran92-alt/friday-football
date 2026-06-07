@@ -19,6 +19,7 @@ Pitch is a mobile app (iOS + Android) for managing casual sports games — creat
 - **Admin portal** — create/edit games, manage players, generate teams, manage admins
 - **Real-time updates** — player list syncs live as people join or leave
 - **Bottom tab navigation** — instant switching between Games and Admin views
+- **Privacy Policy + Terms of Service** — in-app legal screen linked from profile and sign-up consent line
 
 ---
 
@@ -146,7 +147,6 @@ Key RPCs (all `SECURITY DEFINER`):
 
 ## Roadmap
 
-- Privacy Policy + Terms of Service screen
 - Recurring games
 - Player stats
 

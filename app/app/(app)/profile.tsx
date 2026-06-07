@@ -102,6 +102,19 @@ export default function ProfileScreen() {
             <Text style={styles.signOutText}>Sign Out</Text>
           </TouchableOpacity>
 
+          {/* Legal links */}
+          <View style={styles.legalRow}>
+            <TouchableOpacity onPress={() => router.push('/(app)/legal')} activeOpacity={0.6}>
+              <Text style={styles.legalLink}>Privacy Policy</Text>
+            </TouchableOpacity>
+            <Text style={styles.legalDot}>·</Text>
+            <TouchableOpacity onPress={() => router.push('/(app)/legal')} activeOpacity={0.6}>
+              <Text style={styles.legalLink}>Terms of Service</Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.versionText}>Pitch v1.0.0</Text>
+
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -173,4 +186,12 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: C.redBorder,
   },
   signOutText: { color: C.red, fontSize: 15, fontWeight: '700' },
+
+  legalRow: {
+    flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
+    gap: 8, marginTop: 24,
+  },
+  legalLink: { fontSize: 13, color: C.muted, textDecorationLine: 'underline' },
+  legalDot: { fontSize: 13, color: C.subtle },
+  versionText: { textAlign: 'center', fontSize: 12, color: C.subtle, marginTop: 8 },
 });

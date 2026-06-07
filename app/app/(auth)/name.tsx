@@ -3,7 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   Alert, KeyboardAvoidingView, Platform, StatusBar, SafeAreaView,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, Href } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';
 import { useAuth } from '../../src/context/AuthContext';
 import { C } from '../../src/lib/theme';
@@ -117,6 +117,23 @@ export default function NameScreen() {
             >
               <Text style={styles.btnText}>{loading ? 'Saving…' : "Let's go →"}</Text>
             </TouchableOpacity>
+
+            <Text style={styles.consent}>
+              By continuing you agree to our{' '}
+              <Text
+                style={styles.consentLink}
+                onPress={() => router.push('/(app)/legal' as Href)}
+              >
+                Terms of Service
+              </Text>
+              {' '}and{' '}
+              <Text
+                style={styles.consentLink}
+                onPress={() => router.push('/(app)/legal' as Href)}
+              >
+                Privacy Policy
+              </Text>.
+            </Text>
           </View>
         </SafeAreaView>
       </KeyboardAvoidingView>
@@ -161,4 +178,10 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.4 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+
+  consent: {
+    fontSize: 12, color: C.subtle, textAlign: 'center',
+    lineHeight: 18, marginTop: 16,
+  },
+  consentLink: { color: C.muted, textDecorationLine: 'underline' },
 });
