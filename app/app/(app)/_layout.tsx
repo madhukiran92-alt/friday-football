@@ -2,6 +2,7 @@ import { Tabs, Redirect } from 'expo-router';
 import { useAuth } from '../../src/context/AuthContext';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { C } from '../../src/lib/theme';
+import { usePushNotifications } from '../../src/hooks/usePushNotifications';
 
 function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
   return (
@@ -13,6 +14,7 @@ function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
 
 export default function AppLayout() {
   const { session, profile, loading, isAdmin } = useAuth();
+  usePushNotifications(profile?.id);
 
   if (loading) return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' }}>

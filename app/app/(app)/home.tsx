@@ -10,6 +10,7 @@ import { useAuth } from '../../src/context/AuthContext';
 import { Game, Registration } from '../../src/lib/types';
 import { C } from '../../src/lib/theme';
 import { NetworkError } from '../../src/components/NetworkError';
+import { notifyPlayers } from '../../src/lib/notifications';
 
 type GameWithRegs = Game & {
   confirmed: Registration[];
@@ -100,8 +101,12 @@ export default function HomeScreen() {
     Alert.alert('Leave game?', 'Your spot will go to the next person on the waitlist.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Leave', style: 'destructive', onPress: async () => {
-        const { error } = await supabase.rpc('leave_game', { p_registration_id: game.myReg!.id });
-        if (error) Alert.alert('Error', error.message);
+        const { data: promotedId, error } = await supabase.rpc('leave_game', { p_registration_id: game.myReg!.id });
+        if (error) { Alert.alert('Error', error.message); return; }
+        // Notify the newly-promoted player (if any)
+        if (promotedId) {
+          notifyPlayers([promotedId], '🎉 You\'re in!', `A spot opened up in "${game.title}" — you're confirmed!`);
+        }
         await fetchGames();
       }},
     ]);
@@ -112,6 +117,12 @@ export default function HomeScreen() {
       { text: 'Keep it', style: 'cancel' },
       { text: 'Cancel Game', style: 'destructive', onPress: async () => {
         await supabase.from('games').update({ status: 'cancelled' }).eq('id', game.id);
+        // Notify all confirmed + waitlisted players
+        const playerIds = [
+          ...game.confirmed.map(r => r.profile_id),
+          ...game.waitlist.map(r => r.profile_id),
+        ].filter(id => id !== profile?.id);
+        notifyPlayers(playerIds, '❌ Game cancelled', `"${game.title}" has been cancelled.`);
         await fetchGames();
       }},
     ]);
