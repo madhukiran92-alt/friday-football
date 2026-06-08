@@ -118,24 +118,12 @@
     }
 
     .btn-store {
-      display: flex; align-items: center; gap: 10px;
-      background: var(--ink); color: #fff;
-      padding: 14px 24px; border-radius: 14px;
+      display: inline-block;
       text-decoration: none;
-      transition: transform .15s, box-shadow .15s;
-      box-shadow: 0 4px 14px rgba(0,0,0,.15);
+      transition: transform .15s, opacity .15s;
     }
-    .btn-store:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.18); }
-    .btn-store.outline {
-      background: transparent; color: var(--ink);
-      border: 1.5px solid var(--separator);
-      box-shadow: none;
-    }
-    .btn-store.outline:hover { border-color: var(--ink); box-shadow: none; }
-    .btn-store-icon { font-size: 28px; line-height: 1; display: flex; align-items: center; }
-    .btn-store-label { display: flex; flex-direction: column; text-align: left; }
-    .btn-store-sub { font-size: 11px; opacity: .7; font-weight: 500; }
-    .btn-store-name { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; }
+    .btn-store:hover { transform: translateY(-2px); opacity: 0.9; }
+    .btn-store img { height: 54px; display: block; }
 
     .hero-note {
       margin-top: 20px;
@@ -388,29 +376,10 @@
     </p>
     <div class="hero-buttons" id="download">
       <a href="#" class="btn-store">
-        <span class="btn-store-icon">
-          <svg width="28" height="28" viewBox="0 0 814 1000" fill="white" xmlns="http://www.w3.org/2000/svg">
-            <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-47.4-148.2-117.1C55 433.4 44 400.3 44 367.6c0-109.7 73.6-186.8 185-186.8 57.9 0 102.5 38.1 137 38.1 32.9 0 84.8-40.3 148.5-40.3 21.3 0 109.3 1.9 169.3 83.1zm-126.7-86.1c17.5-22.5 29.9-53.7 29.9-84.9 0-5.3-.5-10.6-1.3-15.9-28.2 1.3-62 18.8-82.1 43.7-15.9 19.2-30.8 50.3-30.8 82 0 5.9.9 11.8 1.3 13.6 1.9.3 5.1.6 8.3.6 25.3 0 56.7-17 74.7-39.1z"/>
-          </svg>
-        </span>
-        <span class="btn-store-label">
-          <span class="btn-store-sub">Download on the</span>
-          <span class="btn-store-name">App Store</span>
-        </span>
+        <img src="https://developer.apple.com/app-store/marketing/guidelines/images/badge-download-on-the-app-store.svg" alt="Download on the App Store" />
       </a>
-      <a href="#" class="btn-store outline">
-        <span class="btn-store-icon">
-          <svg width="26" height="26" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3.18 23.76c.3.17.64.24.99.2l13.7-11.96-3.17-3.17L3.18 23.76z" fill="#EA4335"/>
-            <path d="M22.35 10.56l-3.07-1.7-3.5 3.06 3.5 3.5 3.1-1.72c.88-.49.88-2.65-.03-3.14z" fill="#FBBC04"/>
-            <path d="M1.2.54C.9.85.72 1.33.72 1.97v20.06c0 .64.18 1.12.5 1.43l.08.07 11.23-11.23v-.26L1.28.47 1.2.54z" fill="#4285F4"/>
-            <path d="M17.87 8.86L12.53 3.5 1.2.54l11.33 11.33 5.34-3z" fill="#34A853"/>
-          </svg>
-        </span>
-        <span class="btn-store-label">
-          <span class="btn-store-sub">Get it on</span>
-          <span class="btn-store-name">Google Play</span>
-        </span>
+      <a href="#" class="btn-store">
+        <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" style="height:54px;" />
       </a>
     </div>
     <p class="hero-note">Free to download · No ads · No subscription</p>
@@ -553,20 +522,11 @@
     <h2>Ready to run<br>a better game?</h2>
     <p>Free to download. No subscription required.</p>
     <div class="cta-buttons">
-      <a href="#" class="btn-white">
-        <svg width="24" height="24" viewBox="0 0 814 1000" fill="#0f172a" xmlns="http://www.w3.org/2000/svg">
-          <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-47.4-148.2-117.1C55 433.4 44 400.3 44 367.6c0-109.7 73.6-186.8 185-186.8 57.9 0 102.5 38.1 137 38.1 32.9 0 84.8-40.3 148.5-40.3 21.3 0 109.3 1.9 169.3 83.1zm-126.7-86.1c17.5-22.5 29.9-53.7 29.9-84.9 0-5.3-.5-10.6-1.3-15.9-28.2 1.3-62 18.8-82.1 43.7-15.9 19.2-30.8 50.3-30.8 82 0 5.9.9 11.8 1.3 13.6 1.9.3 5.1.6 8.3.6 25.3 0 56.7-17 74.7-39.1z"/>
-        </svg>
-        <span style="font-size:16px;font-weight:800;">App Store</span>
+      <a href="#" class="btn-store">
+        <img src="https://developer.apple.com/app-store/marketing/guidelines/images/badge-download-on-the-app-store.svg" alt="Download on the App Store" style="height:54px;filter:brightness(0) invert(1);" />
       </a>
-      <a href="#" class="btn-outline-white">
-        <svg width="22" height="22" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3.18 23.76c.3.17.64.24.99.2l13.7-11.96-3.17-3.17L3.18 23.76z" fill="#EA4335"/>
-          <path d="M22.35 10.56l-3.07-1.7-3.5 3.06 3.5 3.5 3.1-1.72c.88-.49.88-2.65-.03-3.14z" fill="#FBBC04"/>
-          <path d="M1.2.54C.9.85.72 1.33.72 1.97v20.06c0 .64.18 1.12.5 1.43l.08.07 11.23-11.23v-.26L1.28.47 1.2.54z" fill="#4285F4"/>
-          <path d="M17.87 8.86L12.53 3.5 1.2.54l11.33 11.33 5.34-3z" fill="#34A853"/>
-        </svg>
-        <span style="font-size:16px;font-weight:700;">Google Play</span>
+      <a href="#" class="btn-store">
+        <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" style="height:54px;" />
       </a>
     </div>
   </section>
