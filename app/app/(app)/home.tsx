@@ -10,7 +10,7 @@ import { useAuth } from '../../src/context/AuthContext';
 import { Game, Registration } from '../../src/lib/types';
 import { C } from '../../src/lib/theme';
 import { NetworkError } from '../../src/components/NetworkError';
-import { notifyPlayers } from '../../src/lib/notifications';
+import { notifyGameEvent } from '../../src/lib/notifications';
 
 type GameWithRegs = Game & {
   confirmed: Registration[];
@@ -42,27 +42,36 @@ export default function HomeScreen() {
       return;
     }
 
-    try {
-      const enriched = await Promise.all(gamesData.map(async (game) => {
-        const { data: regs, error: regsError } = await supabase
-          .from('registrations')
-          .select('*, profile:profiles!registrations_profile_id_fkey(id, name)')
-          .eq('game_id', game.id)
-          .order('position', { ascending: true });
-        if (regsError) throw regsError;
-        const all = regs ?? [];
-        return {
-          ...game,
-          confirmed: all.filter(r => r.status === 'confirmed'),
-          waitlist: all.filter(r => r.status === 'waitlist'),
-          myReg: profileId ? (all.find(r => r.profile_id === profileId) ?? null) : null,
-        };
-      }));
-      setFetchError(false);
-      setGames(enriched);
-    } catch {
+    // Single query for all registrations across the visible games (no N+1)
+    const { data: regs, error: regsError } = await supabase
+      .from('registrations')
+      .select('*, profile:profiles!registrations_profile_id_fkey(id, name)')
+      .in('game_id', gamesData.map(g => g.id))
+      .order('position', { ascending: true });
+
+    if (regsError) {
       setFetchError(true);
+      return;
     }
+
+    const byGame = new Map<string, Registration[]>();
+    for (const r of regs ?? []) {
+      const list = byGame.get(r.game_id) ?? [];
+      list.push(r);
+      byGame.set(r.game_id, list);
+    }
+
+    const enriched = gamesData.map((game) => {
+      const all = byGame.get(game.id) ?? [];
+      return {
+        ...game,
+        confirmed: all.filter(r => r.status === 'confirmed'),
+        waitlist: all.filter(r => r.status === 'waitlist'),
+        myReg: profileId ? (all.find(r => r.profile_id === profileId) ?? null) : null,
+      };
+    });
+    setFetchError(false);
+    setGames(enriched);
   }, []);
 
   async function load(isRefresh = false) {
@@ -105,7 +114,7 @@ export default function HomeScreen() {
         if (error) { Alert.alert('Error', error.message); return; }
         // Notify the newly-promoted player (if any)
         if (promotedId) {
-          notifyPlayers([promotedId], '🎉 You\'re in!', `A spot opened up in "${game.title}" — you're confirmed!`);
+          notifyGameEvent('waitlist_promoted', game.id, [promotedId]);
         }
         await fetchGames();
       }},
@@ -117,12 +126,8 @@ export default function HomeScreen() {
       { text: 'Keep it', style: 'cancel' },
       { text: 'Cancel Game', style: 'destructive', onPress: async () => {
         await supabase.from('games').update({ status: 'cancelled' }).eq('id', game.id);
-        // Notify all confirmed + waitlisted players
-        const playerIds = [
-          ...game.confirmed.map(r => r.profile_id),
-          ...game.waitlist.map(r => r.profile_id),
-        ].filter(id => id !== profile?.id);
-        notifyPlayers(playerIds, '❌ Game cancelled', `"${game.title}" has been cancelled.`);
+        // Edge function notifies all registered players (recipients resolved server-side)
+        notifyGameEvent('game_cancelled', game.id);
         await fetchGames();
       }},
     ]);

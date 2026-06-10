@@ -66,7 +66,7 @@ function PrivacyPolicy() {
 
       <Section title="Information we collect">
         <BulletList items={[
-          'Mobile phone number — used to verify your identity and sign you in.',
+          'Email address and password — used to create your account and sign you in.',
           'Display name — shown to other players in game lists.',
           'Device push token — used to send you game notifications (optional, only collected if you grant permission).',
         ]} />
@@ -77,14 +77,15 @@ function PrivacyPolicy() {
           'To let you sign in and use the app.',
           'To display your name to other players in games you join.',
           'To send you push notifications about games you are registered in.',
-          'Admins who organise your games can see your phone number to coordinate logistics.',
+          'Admins who organise your games can see your contact details to coordinate logistics.',
         ]} />
         We do not sell, rent, or share your information with third parties for marketing purposes.
       </Section>
 
       <Section title="What other users can see">
-        Other players can see your display name in game player lists. Your phone number and email
-        address are not visible to other players — only to admins in games you join.
+        Other players can see your display name in game player lists. Your email address and
+        phone number (if provided) are not visible to other players — only to admins in games
+        you join.
       </Section>
 
       <Section title="Data retention">

@@ -46,7 +46,7 @@ export default function AppLayout() {
         options={{
           title: 'Admin',
           href: isAdmin ? undefined : null,
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🏟" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="⚙️" focused={focused} />,
         }}
       />
       {/* Stack-only screens — hidden from tab bar */}

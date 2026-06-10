@@ -67,7 +67,7 @@ export default function AdminIndexScreen() {
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView style={styles.headerSafe}>
-        <View style={styles.headerRow}>
+        <View style={styles.header}>
           <Text style={styles.headerTitle}>Admin</Text>
         </View>
       </SafeAreaView>

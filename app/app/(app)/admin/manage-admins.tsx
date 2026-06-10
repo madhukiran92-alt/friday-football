@@ -29,7 +29,7 @@ export default function ManageAdminsScreen() {
     const [{ data: adminsData }, { data: invitesData }] = await Promise.all([
       supabase
         .from('admins')
-        .select('*, profile:profiles!admins_profile_id_fkey(id, name, phone)')
+        .select('*, profile:profiles!admins_profile_id_fkey(id, name)')
         .order('created_at', { ascending: true }),
       supabase
         .from('admin_invites')
@@ -198,7 +198,6 @@ export default function ManageAdminsScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.adminName}>{(a.profile as any)?.name}</Text>
-              <Text style={styles.adminPhone}>{(a.profile as any)?.phone}</Text>
             </View>
             {a.profile_id === profile?.id
               ? <View style={styles.youTag}><Text style={styles.youTagText}>You</Text></View>

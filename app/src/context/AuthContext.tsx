@@ -27,10 +27,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function loadProfile(userId: string) {
     const [{ data: profileData }, { data: adminData }] = await Promise.all([
-      supabase.from('profiles_public').select('*').eq('id', userId).single(),
+      supabase.rpc('get_my_profile').single(),
       supabase.from('admins').select('id').eq('profile_id', userId).single(),
     ]);
-    setProfile(profileData ?? null);
+    setProfile((profileData as Profile | null) ?? null);
     setIsAdmin(!!adminData);
   }
 

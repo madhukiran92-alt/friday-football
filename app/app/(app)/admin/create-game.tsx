@@ -10,7 +10,7 @@ import { supabase } from '../../../src/lib/supabase';
 import { useAuth } from '../../../src/context/AuthContext';
 import { Profile } from '../../../src/lib/types';
 import { C } from '../../../src/lib/theme';
-import { notifyPlayers } from '../../../src/lib/notifications';
+import { notifyGameEvent } from '../../../src/lib/notifications';
 
 const SPORTS = [
   { key: 'football',    emoji: '⚽', label: 'Football'   },
@@ -118,8 +118,7 @@ export default function CreateGameScreen() {
     // Notify pre-added players (everyone except the admin who created it)
     const notifyIds = otherPlayers.map(p => p.id);
     if (notifyIds.length) {
-      const dateStr = scheduledAt.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
-      notifyPlayers(notifyIds, '📅 You\'ve been added to a game', `${title.trim()} — ${dateStr}`);
+      notifyGameEvent('added_to_game', gameData.id, notifyIds);
     }
 
     setLoading(false);

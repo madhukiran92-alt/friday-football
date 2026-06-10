@@ -27,7 +27,7 @@ export default function ManageGameScreen() {
       supabase.from('games').select('*').eq('id', gameId).single(),
       supabase
         .from('registrations')
-        .select('*, profile:profiles!registrations_profile_id_fkey(id, name, phone)')
+        .select('*, profile:profiles!registrations_profile_id_fkey(id, name)')
         .eq('game_id', gameId)
         .order('position', { ascending: true }),
     ]);
