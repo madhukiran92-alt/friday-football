@@ -8,13 +8,9 @@ import { supabase } from '../../../src/lib/supabase';
 import { useAuth } from '../../../src/context/AuthContext';
 import { Admin, Profile } from '../../../src/lib/types';
 import { C } from '../../../src/lib/theme';
+import { randomCode } from '../../../src/lib/inviteCode';
 
 type Invite = { id: string; code: string; created_at: string; used_at: string | null; used_by: string | null };
-
-function randomCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-}
 
 export default function ManageAdminsScreen() {
   const { profile } = useAuth();

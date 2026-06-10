@@ -126,6 +126,20 @@ Key RPCs (all `SECURITY DEFINER`):
 
 ---
 
+## Testing
+
+```bash
+cd app
+npm test           # Jest unit tests (game logic, teams, invite codes, notifications)
+npm run typecheck  # TypeScript strict check
+```
+
+- **Unit tests** live in `app/src/lib/__tests__/` with mock-data factories in `fixtures.ts`. They cover waitlist splitting, registration position/status assignment, balanced team generation, invite-code format, and notification payloads.
+- **DB integration test**: [`supabase/tests/waitlist_rpc_test.sql`](supabase/tests/waitlist_rpc_test.sql) exercises `join_game`, `leave_game`, and `redeem_admin_invite` against the real schema with simulated JWTs. Paste it into the Supabase SQL editor — it creates throwaway users, runs 7 assertions, and always rolls itself back. Success looks like `ERROR: TEST_SUITE_PASSED`.
+- **CI**: GitHub Actions runs typecheck + tests on every push and pull request.
+
+---
+
 ## Security
 
 - **RLS enabled** on all 7 public tables

@@ -7,16 +7,11 @@ import {
 import { router, useFocusEffect } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';
 import { useAuth } from '../../src/context/AuthContext';
-import { Game, Registration } from '../../src/lib/types';
+import { Registration } from '../../src/lib/types';
 import { C } from '../../src/lib/theme';
 import { NetworkError } from '../../src/components/NetworkError';
 import { notifyGameEvent } from '../../src/lib/notifications';
-
-type GameWithRegs = Game & {
-  confirmed: Registration[];
-  waitlist: Registration[];
-  myReg: Registration | null;
-};
+import { enrichGames, waitlistPosition, GameWithRegs } from '../../src/lib/gameLogic';
 
 export default function HomeScreen() {
   const { profile, isAdmin } = useAuth();
@@ -54,24 +49,8 @@ export default function HomeScreen() {
       return;
     }
 
-    const byGame = new Map<string, Registration[]>();
-    for (const r of regs ?? []) {
-      const list = byGame.get(r.game_id) ?? [];
-      list.push(r);
-      byGame.set(r.game_id, list);
-    }
-
-    const enriched = gamesData.map((game) => {
-      const all = byGame.get(game.id) ?? [];
-      return {
-        ...game,
-        confirmed: all.filter(r => r.status === 'confirmed'),
-        waitlist: all.filter(r => r.status === 'waitlist'),
-        myReg: profileId ? (all.find(r => r.profile_id === profileId) ?? null) : null,
-      };
-    });
     setFetchError(false);
-    setGames(enriched);
+    setGames(enrichGames(gamesData, (regs ?? []) as Registration[], profileId));
   }, []);
 
   async function load(isRefresh = false) {
@@ -289,7 +268,7 @@ function GameCard({ game, profileId, isAdmin, joiningId, onJoin, onLeave, onCanc
       {game.myReg?.status === 'waitlist' && (
         <View style={styles.waitBanner}>
           <Text style={styles.waitBannerText}>
-            ⏳  You're #{game.waitlist.findIndex(r => r.id === game.myReg!.id) + 1} on the waitlist
+            ⏳  You're #{waitlistPosition(game.waitlist, game.myReg.id)} on the waitlist
           </Text>
         </View>
       )}

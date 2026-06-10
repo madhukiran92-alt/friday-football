@@ -11,6 +11,7 @@ import { useAuth } from '../../../src/context/AuthContext';
 import { Profile } from '../../../src/lib/types';
 import { C } from '../../../src/lib/theme';
 import { notifyGameEvent } from '../../../src/lib/notifications';
+import { buildRegistrationRows } from '../../../src/lib/gameLogic';
 
 const SPORTS = [
   { key: 'football',    emoji: '⚽', label: 'Football'   },
@@ -99,16 +100,8 @@ export default function CreateGameScreen() {
       return;
     }
 
-    const otherPlayers = selectedPlayers.filter(p => p.id !== profile!.id);
-    const allPlayers = [profile!, ...otherPlayers];
-
-    const regs = allPlayers.map((p, i) => ({
-      game_id: gameData.id,
-      profile_id: p.id,
-      status: (i < max ? 'confirmed' : 'waitlist') as 'confirmed' | 'waitlist',
-      position: i + 1,
-      added_by: profile!.id,
-    }));
+    const regs = buildRegistrationRows(profile!, selectedPlayers, gameData.id, max);
+    const otherPlayers = regs.slice(1);
 
     const { error: regError } = await supabase.from('registrations').insert(regs);
     if (regError) {
@@ -116,7 +109,7 @@ export default function CreateGameScreen() {
     }
 
     // Notify pre-added players (everyone except the admin who created it)
-    const notifyIds = otherPlayers.map(p => p.id);
+    const notifyIds = otherPlayers.map(r => r.profile_id);
     if (notifyIds.length) {
       notifyGameEvent('added_to_game', gameData.id, notifyIds);
     }

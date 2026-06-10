@@ -7,6 +7,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { supabase } from '../../../src/lib/supabase';
 import { useAuth } from '../../../src/context/AuthContext';
 import { Game, Registration } from '../../../src/lib/types';
+import { splitIntoTeams } from '../../../src/lib/teamLogic';
 
 export default function GenerateTeamsScreen() {
   const { gameId: preselectedGameId } = useLocalSearchParams<{ gameId?: string }>();
@@ -49,25 +50,16 @@ export default function GenerateTeamsScreen() {
     setConfirmed(data ?? []);
   }
 
-  function shuffle<T>(arr: T[]): T[] {
-    const a = [...arr];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-
   function previewTeams() {
     if (confirmed.length < 2) {
       Alert.alert('Not enough players', 'Need at least 2 confirmed players.');
       return;
     }
-    const shuffled = shuffle(confirmed);
-    const half = Math.ceil(shuffled.length / 2);
-    const t1 = shuffled.slice(0, half).map(r => (r.profile as any)?.name ?? '?');
-    const t2 = shuffled.slice(half).map(r => (r.profile as any)?.name ?? '?');
-    setTeams([t1, t2]);
+    const [t1, t2] = splitIntoTeams(confirmed);
+    setTeams([
+      t1.map(r => (r.profile as any)?.name ?? '?'),
+      t2.map(r => (r.profile as any)?.name ?? '?'),
+    ]);
   }
 
   async function saveTeams() {
