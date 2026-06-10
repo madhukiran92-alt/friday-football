@@ -1,12 +1,12 @@
 -- ============================================================================
--- Waitlist & invite RPC integration test
+-- Waitlist RPC integration test
 --
 -- Runs against the real schema (Supabase SQL editor or `psql`). Creates its
 -- own throwaway users/game, simulates each user's JWT via
--- request.jwt.claims, exercises join_game / leave_game /
--- redeem_admin_invite, and ALWAYS rolls back by raising at the end.
+-- request.jwt.claims, exercises join_game / leave_game, and ALWAYS rolls
+-- back by raising at the end.
 --
--- PASS:  ERROR: TEST_SUITE_PASSED — all 7 waitlist/invite RPC tests OK
+-- PASS:  ERROR: TEST_SUITE_PASSED — all 6 waitlist RPC tests OK
 -- FAIL:  ERROR: FAIL T<n>: <description>
 -- ============================================================================
 
@@ -19,7 +19,6 @@ DECLARE
   v_reg record;
   v_promoted uuid;
   v_count int;
-  v_redeemed boolean;
 BEGIN
   -- ── Setup: three users (trigger creates their profiles) ──
   INSERT INTO auth.users (id, instance_id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -82,27 +81,16 @@ BEGIN
   SELECT leave_game(id) INTO v_promoted FROM registrations WHERE game_id = v_game AND profile_id = u1;
   IF v_promoted IS NOT NULL THEN RAISE EXCEPTION 'FAIL T5: waitlister leaving must promote nobody, got %', v_promoted; END IF;
 
-  -- ── Test 6: invite codes — redeem once, become admin, second redeem fails ──
-  INSERT INTO admins (profile_id) VALUES (u2) ON CONFLICT DO NOTHING;
-  INSERT INTO admin_invites (code, created_by) VALUES ('TESTCODE', u2);
-  PERFORM set_config('request.jwt.claims', json_build_object('sub', u3, 'role', 'authenticated')::text, true);
-  SELECT redeem_admin_invite('TESTCODE') INTO v_redeemed;
-  IF NOT v_redeemed THEN RAISE EXCEPTION 'FAIL T6: first redemption should succeed'; END IF;
-  SELECT count(*) INTO v_count FROM admins WHERE profile_id = u3;
-  IF v_count <> 1 THEN RAISE EXCEPTION 'FAIL T6: u3 should now be an admin'; END IF;
-  SELECT redeem_admin_invite('TESTCODE') INTO v_redeemed;
-  IF v_redeemed THEN RAISE EXCEPTION 'FAIL T6: second redemption must fail'; END IF;
-
-  -- ── Test 7: joining a non-open game is rejected ──
+  -- ── Test 6: joining a non-open game is rejected ──
   UPDATE games SET status = 'cancelled' WHERE id = v_game;
   PERFORM set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated')::text, true);
   BEGIN
     PERFORM join_game(v_game);
-    RAISE EXCEPTION 'FAIL T7: joining a cancelled game should have raised';
+    RAISE EXCEPTION 'FAIL T6: joining a cancelled game should have raised';
   EXCEPTION WHEN OTHERS THEN
     IF SQLERRM NOT LIKE '%not open%' THEN RAISE; END IF;
   END;
 
   -- All assertions passed — abort to roll every test row back.
-  RAISE EXCEPTION 'TEST_SUITE_PASSED — all 7 waitlist/invite RPC tests OK (rolled back)';
+  RAISE EXCEPTION 'TEST_SUITE_PASSED — all 6 waitlist RPC tests OK (rolled back)';
 END $$;

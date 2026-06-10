@@ -15,7 +15,7 @@ Pitch is a mobile app (iOS + Android) for managing casual sports games — creat
 - **Push notifications** — players notified when added to a game, confirmed off the waitlist, or a game is cancelled
 - **Offline error states** — clear "Can't connect" screen with retry instead of a silent empty list
 - **Team generation** — balanced random splits, saved per game
-- **Single-door admin accounts** — organiser accounts are created only on the website ([pitchapp.net/admin](https://pitchapp.net/admin/)) with a one-time invite code; the app's signup creates players only. Built so the web gate can later become a paid checkout without app changes.
+- **Single-door admin accounts** — organiser accounts are created only on the website ([pitchapp.net/admin](https://pitchapp.net/admin/)); the app's signup creates players only. Built so the web signup can later become a paid checkout without app changes.
 - **Admin portal** — create/edit games, manage players, generate teams, manage admins
 - **Real-time updates** — player list syncs live as people join or leave
 - **Bottom tab navigation** — instant switching between Games and Admin views
@@ -76,7 +76,7 @@ npx expo run:android # Android emulator
 friday-football/
 ├── app/
 │   ├── app/
-│   │   ├── (auth)/              # Login + name/invite onboarding
+│   │   ├── (auth)/              # Login + name onboarding
 │   │   └── (app)/               # Authenticated screens
 │   │       ├── home.tsx         # Game feed (players)
 │   │       ├── profile.tsx      # User profile
@@ -97,7 +97,7 @@ friday-football/
 ├── supabase/
 │   └── functions/
 │       ├── notify-players/        # Edge function — sends Expo push notifications
-│       └── create-admin-account/  # Edge function — web organiser signup (invite-gated)
+│       └── create-admin-account/  # Edge function — web organiser signup
 ├── landing/                       # pitchapp.net (Cloudflare Pages)
 │   ├── index.html                 # Landing page
 │   └── admin/index.html           # Organiser account signup
@@ -115,7 +115,6 @@ Key tables:
 | `games` | Game details — title, sport, location, date, max players, status |
 | `registrations` | Player sign-ups with confirmed / waitlist status and position |
 | `admins` | Admin role assignments |
-| `admin_invites` | One-time codes for granting admin access |
 | `teams` + `team_members` | Generated team assignments per game |
 | `push_tokens` | Device push tokens per user (one per device) |
 
@@ -125,7 +124,6 @@ Key RPCs (all `SECURITY DEFINER`):
 |---|---|
 | `join_game(p_game_id)` | Atomic join with waitlist logic and row-level locking |
 | `leave_game(p_registration_id)` | Remove player, promote first waitlisted user, return promoted `profile_id` |
-| `redeem_admin_invite(p_code)` | Validate and consume a one-time invite code |
 | `is_admin()` | Returns true if the calling user is in the `admins` table |
 
 ---
@@ -134,12 +132,12 @@ Key RPCs (all `SECURITY DEFINER`):
 
 ```bash
 cd app
-npm test           # Jest unit tests (game logic, teams, invite codes, notifications)
+npm test           # Jest unit tests (game logic, teams, notifications)
 npm run typecheck  # TypeScript strict check
 ```
 
-- **Unit tests** live in `app/src/lib/__tests__/` with mock-data factories in `fixtures.ts`. They cover waitlist splitting, registration position/status assignment, balanced team generation, invite-code format, and notification payloads.
-- **DB integration test**: [`supabase/tests/waitlist_rpc_test.sql`](supabase/tests/waitlist_rpc_test.sql) exercises `join_game`, `leave_game`, and `redeem_admin_invite` against the real schema with simulated JWTs. Paste it into the Supabase SQL editor — it creates throwaway users, runs 7 assertions, and always rolls itself back. Success looks like `ERROR: TEST_SUITE_PASSED`.
+- **Unit tests** live in `app/src/lib/__tests__/` with mock-data factories in `fixtures.ts`. They cover waitlist splitting, registration position/status assignment, balanced team generation, and notification payloads.
+- **DB integration test**: [`supabase/tests/waitlist_rpc_test.sql`](supabase/tests/waitlist_rpc_test.sql) exercises `join_game` and `leave_game` against the real schema with simulated JWTs. Paste it into the Supabase SQL editor — it creates throwaway users, runs 6 assertions, and always rolls itself back. Success looks like `ERROR: TEST_SUITE_PASSED`.
 - **CI**: GitHub Actions runs typecheck + tests on every push and pull request.
 
 ---
@@ -150,7 +148,6 @@ npm run typecheck  # TypeScript strict check
 - **Anon key only** in the client — `service_role` never leaves the server
 - **Phone/email protected** — `profiles_public` view masks other users' contact details; only your own phone/email is returned. Column-level `SELECT` revoked on base table for `authenticated` role.
 - **Waitlist integrity** — direct `UPDATE`/`DELETE` on `registrations` restricted to admins; players must go through `join_game`/`leave_game` RPCs so queue logic always runs atomically
-- **Admin invite codes** — single-use, row-locked on redemption to prevent race conditions
 - **Error boundary** — catches unexpected render errors app-wide
 - **Push tokens** — stored per-user with own-row RLS; read server-side by Edge Function using `service_role`
 
@@ -171,6 +168,7 @@ Pitch is a product of **Nila** — [pitchapp.net](https://pitchapp.net)
 
 ## Roadmap
 
+- **Groups / multi-tenancy** — scope each organiser's powers to their own group of games (required before public launch: admin rights are currently global, and organiser signup is open)
 - Recurring games
 - Player stats
 

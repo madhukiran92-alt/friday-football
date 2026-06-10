@@ -1,38 +1,25 @@
 import { useEffect, useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  Alert, ScrollView, ActivityIndicator, Clipboard,
+  Alert, ScrollView, ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '../../../src/lib/supabase';
 import { useAuth } from '../../../src/context/AuthContext';
 import { Admin } from '../../../src/lib/types';
 import { C } from '../../../src/lib/theme';
-import { randomCode } from '../../../src/lib/inviteCode';
-
-type Invite = { id: string; code: string; created_at: string; used_at: string | null; used_by: string | null };
 
 export default function ManageAdminsScreen() {
   const { profile } = useAuth();
   const [admins, setAdmins] = useState<Admin[]>([]);
-  const [invites, setInvites] = useState<Invite[]>([]);
   const [loading, setLoading] = useState(true);
-  const [generatingInvite, setGeneratingInvite] = useState(false);
 
   async function fetchData() {
-    const [{ data: adminsData }, { data: invitesData }] = await Promise.all([
-      supabase
-        .from('admins')
-        .select('*, profile:profiles!admins_profile_id_fkey(id, name)')
-        .order('created_at', { ascending: true }),
-      supabase
-        .from('admin_invites')
-        .select('id, code, created_at, used_at, used_by')
-        .order('created_at', { ascending: false })
-        .limit(10),
-    ]);
-    setAdmins(adminsData ?? []);
-    setInvites(invitesData ?? []);
+    const { data } = await supabase
+      .from('admins')
+      .select('*, profile:profiles!admins_profile_id_fkey(id, name)')
+      .order('created_at', { ascending: true });
+    setAdmins(data ?? []);
     setLoading(false);
   }
 
@@ -48,102 +35,29 @@ export default function ManageAdminsScreen() {
     ]);
   }
 
-  async function generateInvite() {
-    setGeneratingInvite(true);
-    const code = randomCode();
-    const { error } = await supabase.from('admin_invites').insert({ code, created_by: profile!.id });
-    if (error) {
-      Alert.alert('Error', error.message);
-    } else {
-      await fetchData();
-      // Auto-copy to clipboard
-      Clipboard.setString(code);
-      Alert.alert('Invite created!', `Code: ${code}\n\nCopied to clipboard. Share it with the new organiser — they'll use it to create their account on the Pitch website.`);
-    }
-    setGeneratingInvite(false);
-  }
-
-  async function copyCode(code: string) {
-    Clipboard.setString(code);
-    Alert.alert('Copied!', `Invite code "${code}" copied to clipboard.`);
-  }
-
-  async function revokeInvite(id: string) {
-    Alert.alert('Revoke invite?', 'This code will no longer work.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Revoke', style: 'destructive', onPress: async () => {
-        await supabase.from('admin_invites').delete().eq('id', id);
-        await fetchData();
-      }},
-    ]);
-  }
-
   if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color={C.green} />;
 
-  const unusedInvites = invites.filter(i => !i.used_by);
-  const usedInvites = invites.filter(i => i.used_by);
-
   return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
+    <ScrollView style={styles.container}>
 
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
           <Text style={styles.back}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Manage Admins</Text>
+        <Text style={styles.title}>Admins</Text>
       </View>
 
-      {/* ── Invite codes ── */}
+      {/* ── How new organisers join ── */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Admin Invite Codes</Text>
-        <Text style={styles.sectionSub}>
-          Generate a one-time code and share it. New organisers create their account on the Pitch website using the code, then sign in here as admins.
-        </Text>
-
-        <TouchableOpacity
-          style={[styles.generateBtn, generatingInvite && styles.generateBtnDisabled]}
-          onPress={generateInvite}
-          disabled={generatingInvite}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.generateBtnText}>{generatingInvite ? 'Generating…' : '+ Generate Invite Code'}</Text>
-        </TouchableOpacity>
-
-        {unusedInvites.length > 0 && (
-          <View style={styles.inviteList}>
-            <Text style={styles.inviteListLabel}>Active codes</Text>
-            {unusedInvites.map(inv => (
-              <View key={inv.id} style={styles.inviteRow}>
-                <Text style={styles.inviteCode}>{inv.code}</Text>
-                <Text style={styles.inviteDate}>
-                  {new Date(inv.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
-                </Text>
-                <TouchableOpacity style={styles.copyBtn} onPress={() => copyCode(inv.code)} activeOpacity={0.7}>
-                  <Text style={styles.copyBtnText}>Copy</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.revokeBtn} onPress={() => revokeInvite(inv.id)} activeOpacity={0.7}>
-                  <Text style={styles.revokeBtnText}>Revoke</Text>
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {usedInvites.length > 0 && (
-          <View style={[styles.inviteList, { marginTop: 8 }]}>
-            <Text style={styles.inviteListLabel}>Used</Text>
-            {usedInvites.map(inv => (
-              <View key={inv.id} style={[styles.inviteRow, styles.inviteRowUsed]}>
-                <Text style={[styles.inviteCode, styles.inviteCodeUsed]}>{inv.code}</Text>
-                <Text style={styles.inviteDate}>Used {new Date(inv.used_at!).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}</Text>
-              </View>
-            ))}
-          </View>
-        )}
+        <View style={styles.infoCard}>
+          <Text style={styles.infoTitle}>Adding a new organiser?</Text>
+          <Text style={styles.infoText}>
+            Organiser accounts are created on the Pitch website. Once they've signed up
+            there, they sign in to this app with the same details and appear in the list below.
+          </Text>
+        </View>
       </View>
-
-      <View style={styles.divider} />
 
       {/* ── Current admins ── */}
       <View style={styles.section}>
@@ -184,48 +98,14 @@ const styles = StyleSheet.create({
   back: { fontSize: 16, color: C.green, fontWeight: '600' },
   title: { fontSize: 20, fontWeight: '800', color: C.ink },
 
-  section: { padding: 16 },
-  sectionTitle: { fontSize: 15, fontWeight: '800', color: C.ink, marginBottom: 4 },
-  sectionSub: { fontSize: 13, color: C.muted, lineHeight: 18, marginBottom: 14 },
-  divider: { height: 8, backgroundColor: C.bg },
+  section: { padding: 16, paddingBottom: 0 },
+  sectionTitle: { fontSize: 15, fontWeight: '800', color: C.ink, marginBottom: 10 },
 
-  // Invite
-  generateBtn: {
-    backgroundColor: C.greenDeep, borderRadius: C.rMd,
-    paddingVertical: 13, alignItems: 'center', marginBottom: 16,
+  infoCard: {
+    backgroundColor: C.greenUltra, borderRadius: C.rMd, padding: 16,
   },
-  generateBtnDisabled: { opacity: 0.5 },
-  generateBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-
-  inviteList: { borderRadius: C.rMd, overflow: 'hidden', borderWidth: 1, borderColor: C.border },
-  inviteListLabel: {
-    fontSize: 11, fontWeight: '700', color: C.muted, letterSpacing: 0.5,
-    textTransform: 'uppercase', paddingHorizontal: 12, paddingVertical: 8,
-    backgroundColor: C.bg,
-  },
-  inviteRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    paddingHorizontal: 12, paddingVertical: 10,
-    backgroundColor: '#fff',
-    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.separator,
-  },
-  inviteRowUsed: { backgroundColor: C.bg },
-  inviteCode: {
-    fontFamily: 'Courier New', fontSize: 16, fontWeight: '700',
-    color: C.ink, letterSpacing: 1, flex: 1,
-  },
-  inviteCodeUsed: { color: C.subtle, textDecorationLine: 'line-through' },
-  inviteDate: { fontSize: 11, color: C.muted },
-  copyBtn: {
-    backgroundColor: C.greenUltra, borderRadius: C.rSm,
-    paddingHorizontal: 10, paddingVertical: 5,
-  },
-  copyBtnText: { fontSize: 12, fontWeight: '700', color: C.green },
-  revokeBtn: {
-    backgroundColor: C.redLight, borderRadius: C.rSm,
-    paddingHorizontal: 10, paddingVertical: 5,
-  },
-  revokeBtnText: { fontSize: 12, fontWeight: '700', color: C.red },
+  infoTitle: { fontSize: 14, fontWeight: '800', color: C.greenDeep, marginBottom: 4 },
+  infoText: { fontSize: 13, color: C.greenDeep, lineHeight: 19, opacity: 0.85 },
 
   // Admin rows
   adminRow: {
@@ -235,7 +115,6 @@ const styles = StyleSheet.create({
     ...C.shadow,
   },
   adminName: { fontSize: 15, fontWeight: '700', color: C.ink },
-  adminPhone: { fontSize: 12, color: C.muted, marginTop: 1 },
   removeBtn: { fontSize: 13, color: C.red, fontWeight: '700' },
   youTag: {
     backgroundColor: C.greenUltra, borderRadius: C.rFull,

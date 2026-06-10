@@ -1,10 +1,10 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// Public endpoint (verify_jwt = false): the caller has no account yet.
-// The gate is a valid, unused admin invite code. When admin accounts
-// become paid, this gate is swapped for a Stripe checkout session id —
-// nothing else in the funnel changes.
+// Public endpoint (verify_jwt = false): organisers create their account on
+// the website, then sign in to the app where the admin role is picked up
+// automatically. When organiser accounts become paid, a Stripe checkout
+// verification slots in here — the form and the app don't change.
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -24,10 +24,10 @@ serve(async (req) => {
   if (req.method !== 'POST') return reply(405, { error: 'method not allowed' });
 
   try {
-    const { name, email, password, invite_code } = await req.json();
+    const { name, email, password } = await req.json();
 
-    if (!name?.trim() || !email?.trim() || !password || !invite_code?.trim()) {
-      return reply(400, { error: 'name, email, password and invite_code are required' });
+    if (!name?.trim() || !email?.trim() || !password) {
+      return reply(400, { error: 'name, email and password are required' });
     }
     if (password.length < 8) {
       return reply(400, { error: 'Password must be at least 8 characters' });
@@ -37,19 +37,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
-
-    const code = invite_code.trim().toUpperCase();
-
-    // Fast-fail before creating anything.
-    const { data: invite } = await admin
-      .from('admin_invites')
-      .select('id')
-      .eq('code', code)
-      .is('used_by', null)
-      .maybeSingle();
-    if (!invite) {
-      return reply(403, { error: 'Invalid or already-used invite code' });
-    }
 
     // Create the auth user (DB trigger creates the profile row).
     const { data: created, error: createError } = await admin.auth.admin.createUser({
@@ -64,29 +51,15 @@ serve(async (req) => {
     }
     const userId = created.user.id;
 
-    // Atomically claim the code (compare-and-set on used_by IS NULL).
-    // If someone raced us to it, undo the user we just created.
-    const { data: claimed } = await admin
-      .from('admin_invites')
-      .update({ used_by: userId, used_at: new Date().toISOString() })
-      .eq('id', invite.id)
-      .is('used_by', null)
-      .select('id');
-    if (!claimed?.length) {
-      await admin.auth.admin.deleteUser(userId);
-      return reply(403, { error: 'Invalid or already-used invite code' });
-    }
-
     await admin.from('profiles').update({ name: name.trim() }).eq('id', userId);
 
     const { error: adminError } = await admin
       .from('admins')
       .insert({ profile_id: userId });
     if (adminError) {
-      // Roll back fully so the code can be reused.
+      // Roll back so the email isn't left stranded as a half-made account.
       await admin.auth.admin.deleteUser(userId);
-      await admin.from('admin_invites').update({ used_by: null, used_at: null }).eq('id', invite.id);
-      return reply(500, { error: 'Could not grant admin access, please try again' });
+      return reply(500, { error: 'Could not grant organiser access, please try again' });
     }
 
     return reply(200, { ok: true });

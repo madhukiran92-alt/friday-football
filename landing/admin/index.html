@@ -4,8 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Become an organiser — Pitch</title>
-  <meta name="description" content="Create your Pitch organiser account. Run games, manage players, and generate teams." />
-  <meta name="robots" content="noindex" />
+  <meta name="description" content="Create your free Pitch organiser account. Run games, manage players, and generate teams for any sport." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏟</text></svg>" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -47,8 +46,15 @@
     .nav-back:hover { color: var(--ink); }
 
     .wrap {
-      max-width: 440px; margin: 0 auto;
+      max-width: 960px; margin: 0 auto;
       padding: 56px 24px 80px;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 56px;
+      align-items: start;
+    }
+    @media (max-width: 860px) {
+      .wrap { grid-template-columns: 1fr; gap: 40px; max-width: 480px; }
     }
 
     .badge {
@@ -59,12 +65,40 @@
       margin-bottom: 18px;
     }
     h1 {
-      font-size: 34px; font-weight: 900; color: var(--ink);
-      letter-spacing: -1.2px; line-height: 1.15;
-      margin-bottom: 10px;
+      font-size: 38px; font-weight: 900; color: var(--ink);
+      letter-spacing: -1.4px; line-height: 1.12;
+      margin-bottom: 12px;
     }
-    .sub { font-size: 15px; color: var(--muted); margin-bottom: 36px; }
+    .sub { font-size: 16px; color: var(--muted); margin-bottom: 36px; }
 
+    /* How it works steps */
+    .steps { display: flex; flex-direction: column; }
+    .step { display: flex; gap: 16px; padding-bottom: 26px; position: relative; }
+    .step:not(:last-child)::before {
+      content: '';
+      position: absolute; left: 17px; top: 38px; bottom: 0;
+      width: 2px; background: var(--separator);
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 36px; height: 36px; border-radius: 18px;
+      background: var(--green); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 800;
+      position: relative; z-index: 1;
+    }
+    .step-title { font-size: 16px; font-weight: 800; color: var(--ink); letter-spacing: -0.2px; margin-bottom: 3px; }
+    .step-desc { font-size: 14px; color: var(--muted); line-height: 1.55; }
+
+    .free-note {
+      margin-top: 6px;
+      background: var(--green-light);
+      border-radius: 12px;
+      padding: 13px 16px;
+      font-size: 13px; font-weight: 600; color: var(--green-deep);
+    }
+
+    /* Form card */
     .card {
       background: var(--surface);
       border: 1px solid var(--separator);
@@ -72,6 +106,7 @@
       padding: 28px;
       box-shadow: 0 10px 36px rgba(15, 23, 42, .06);
     }
+    .card-title { font-size: 19px; font-weight: 800; color: var(--ink); letter-spacing: -0.3px; margin-bottom: 18px; }
 
     label {
       display: block;
@@ -90,8 +125,6 @@
       transition: border-color .15s, background .15s;
     }
     input:focus { border-color: var(--green); background: var(--surface); }
-    input.code { text-transform: uppercase; letter-spacing: 2px; font-family: ui-monospace, 'SF Mono', Menlo, monospace; }
-
     .hint { font-size: 12px; color: var(--subtle); margin-top: 5px; }
 
     button {
@@ -116,16 +149,15 @@
       display: none;
     }
     .msg.error { display: block; background: var(--red-light); color: var(--red); }
-    .msg.success { display: block; background: var(--green-light); color: var(--green-deep); }
 
     .success-card { text-align: center; padding: 12px 0; }
     .success-card .tick { font-size: 44px; margin-bottom: 12px; }
     .success-card h2 { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -0.4px; margin-bottom: 8px; }
-    .success-card p { font-size: 14px; color: var(--muted); }
+    .success-card p { font-size: 14px; color: var(--muted); line-height: 1.6; }
 
     .foot {
-      text-align: center; margin-top: 28px;
-      font-size: 13px; color: var(--subtle);
+      text-align: center; margin-top: 20px;
+      font-size: 12px; color: var(--subtle); line-height: 1.6;
     }
     .foot a { color: var(--muted); }
   </style>
@@ -138,38 +170,73 @@
   </nav>
 
   <div class="wrap">
-    <span class="badge">FOR ORGANISERS</span>
-    <h1>Create your organiser account</h1>
-    <p class="sub">
-      Organiser accounts are created here on the web with an invite code.
-      Once created, sign in to the Pitch app with the same email and password —
-      you'll see the admin tools automatically.
-    </p>
 
-    <div class="card" id="card">
-      <form id="form">
-        <label for="name">Your name</label>
-        <input id="name" type="text" autocomplete="name" placeholder="e.g. Sam Kerr" required />
+    <!-- Left: explanation -->
+    <div>
+      <span class="badge">FOR ORGANISERS</span>
+      <h1>Run your games with Pitch</h1>
+      <p class="sub">
+        Pitch has two kinds of accounts: <strong>organisers</strong> and <strong>players</strong>.
+        Organiser accounts are created right here — players simply download the app and sign up there.
+      </p>
 
-        <label for="email">Email</label>
-        <input id="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div>
+            <div class="step-title">Create your organiser account here</div>
+            <p class="step-desc">Fill in the form — name, email, password. That's it. This account comes with full organiser tools built in.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div>
+            <div class="step-title">Sign in to the Pitch app</div>
+            <p class="step-desc">Download Pitch on iOS or Android and sign in with the same email and password. The app recognises you as an organiser automatically — you'll see the Admin tab next to your games.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div>
+            <div class="step-title">Create games — your players join in the app</div>
+            <p class="step-desc">Set the sport, date, location and player cap. Players sign up in the app with one tap; Pitch runs the waitlist, notifications, and team splits for you.</p>
+          </div>
+        </div>
+      </div>
 
-        <label for="password">Password</label>
-        <input id="password" type="password" autocomplete="new-password" placeholder="At least 8 characters" minlength="8" required />
-
-        <label for="code">Invite code</label>
-        <input id="code" class="code" type="text" autocomplete="off" placeholder="e.g. AB3X7KQR" maxlength="8" required />
-        <p class="hint">Don't have a code? Ask the organiser who invited you, or email hello@pitchapp.net.</p>
-
-        <button id="submit" type="submit">Create organiser account</button>
-        <div class="msg" id="msg"></div>
-      </form>
+      <div class="free-note">
+        🎉 Organiser accounts are free while Pitch is in early access.
+      </div>
     </div>
 
-    <p class="foot">
-      By creating an account you agree to our terms of service and privacy policy.<br>
-      Questions? <a href="mailto:hello@pitchapp.net">hello@pitchapp.net</a>
-    </p>
+    <!-- Right: form -->
+    <div>
+      <div class="card" id="card">
+        <div class="card-title">Create your organiser account</div>
+        <form id="form">
+          <label for="name">Your name</label>
+          <input id="name" type="text" autocomplete="name" placeholder="e.g. Sam Kerr" required />
+
+          <label for="email">Email</label>
+          <input id="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+
+          <label for="password">Password</label>
+          <input id="password" type="password" autocomplete="new-password" placeholder="At least 8 characters" minlength="8" required />
+          <p class="hint">You'll use this email and password to sign in to the Pitch app.</p>
+
+          <button id="submit" type="submit">Create organiser account</button>
+          <div class="msg" id="msg"></div>
+        </form>
+      </div>
+
+      <p class="foot">
+        Just want to play? You don't need an account here —<br>
+        download the Pitch app and sign up as a player in seconds.<br><br>
+        By creating an account you agree to our terms of service and privacy policy.<br>
+        Questions? <a href="mailto:hello@pitchapp.net">hello@pitchapp.net</a>
+      </p>
+    </div>
+
   </div>
 
   <script>
@@ -193,7 +260,6 @@
             name: document.getElementById('name').value,
             email: document.getElementById('email').value,
             password: document.getElementById('password').value,
-            invite_code: document.getElementById('code').value,
           }),
         });
         const data = await res.json().catch(() => ({}));
@@ -204,7 +270,7 @@
               <div class="tick">✅</div>
               <h2>You're all set!</h2>
               <p>Your organiser account is ready. Open the Pitch app and sign in with
-              your email and password — the admin tools will be there waiting.</p>
+              your email and password — the organiser tools will be there waiting.</p>
             </div>`;
         } else {
           msg.textContent = data.error || 'Something went wrong, please try again.';
