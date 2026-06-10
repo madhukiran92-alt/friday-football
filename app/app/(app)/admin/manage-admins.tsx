@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  View, Text, TouchableOpacity, StyleSheet,
   Alert, ScrollView, ActivityIndicator, Clipboard,
 } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '../../../src/lib/supabase';
 import { useAuth } from '../../../src/context/AuthContext';
-import { Admin, Profile } from '../../../src/lib/types';
+import { Admin } from '../../../src/lib/types';
 import { C } from '../../../src/lib/theme';
 import { randomCode } from '../../../src/lib/inviteCode';
 
@@ -16,8 +16,6 @@ export default function ManageAdminsScreen() {
   const { profile } = useAuth();
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [invites, setInvites] = useState<Invite[]>([]);
-  const [search, setSearch] = useState('');
-  const [results, setResults] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [generatingInvite, setGeneratingInvite] = useState(false);
 
@@ -40,20 +38,6 @@ export default function ManageAdminsScreen() {
 
   useEffect(() => { fetchData(); }, []);
 
-  async function searchPlayers(query: string) {
-    setSearch(query);
-    if (query.length < 2) { setResults([]); return; }
-    const { data } = await supabase.from('profiles_public').select('*').ilike('name', `%${query}%`).limit(10);
-    const adminIds = admins.map(a => a.profile_id);
-    setResults((data ?? []).filter(p => !adminIds.includes(p.id)));
-  }
-
-  async function addAdmin(p: Profile) {
-    const { error } = await supabase.from('admins').insert({ profile_id: p.id, added_by: profile!.id });
-    if (error) Alert.alert('Error', error.message);
-    else { setSearch(''); setResults([]); await fetchData(); }
-  }
-
   async function removeAdmin(adminId: string, name: string) {
     Alert.alert(`Remove ${name}?`, 'They will lose admin access immediately.', [
       { text: 'Cancel', style: 'cancel' },
@@ -74,7 +58,7 @@ export default function ManageAdminsScreen() {
       await fetchData();
       // Auto-copy to clipboard
       Clipboard.setString(code);
-      Alert.alert('Invite created!', `Code: ${code}\n\nCopied to clipboard. Share it with the person you want to make an admin — they'll enter it when they sign up.`);
+      Alert.alert('Invite created!', `Code: ${code}\n\nCopied to clipboard. Share it with the new organiser — they'll use it to create their account on the Pitch website.`);
     }
     setGeneratingInvite(false);
   }
@@ -114,7 +98,7 @@ export default function ManageAdminsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Admin Invite Codes</Text>
         <Text style={styles.sectionSub}>
-          Generate a one-time code and share it with someone. They'll enter it during signup to get admin access automatically.
+          Generate a one-time code and share it. New organisers create their account on the Pitch website using the code, then sign in here as admins.
         </Text>
 
         <TouchableOpacity
@@ -157,29 +141,6 @@ export default function ManageAdminsScreen() {
             ))}
           </View>
         )}
-      </View>
-
-      <View style={styles.divider} />
-
-      {/* ── Promote existing player ── */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Promote Existing Player</Text>
-        <Text style={styles.sectionSub}>Search for someone who already has an account.</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Search by name…"
-          value={search}
-          onChangeText={searchPlayers}
-        />
-        {results.map(p => (
-          <TouchableOpacity key={p.id} style={styles.searchResult} onPress={() => addAdmin(p)} activeOpacity={0.75}>
-            <View style={styles.playerInit}>
-              <Text style={styles.playerInitText}>{p.name.charAt(0).toUpperCase()}</Text>
-            </View>
-            <Text style={styles.searchResultText}>{p.name}</Text>
-            <Text style={styles.addText}>Make Admin</Text>
-          </TouchableOpacity>
-        ))}
       </View>
 
       <View style={styles.divider} />
@@ -265,22 +226,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 5,
   },
   revokeBtnText: { fontSize: 12, fontWeight: '700', color: C.red },
-
-  // Search / promote
-  input: {
-    backgroundColor: '#fff', borderWidth: 1, borderColor: C.border,
-    borderRadius: C.rMd, padding: 13, fontSize: 15,
-  },
-  searchResult: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#fff', padding: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.separator,
-  },
-  searchResultText: { flex: 1, fontSize: 15, color: C.ink },
-  addText: {
-    fontSize: 13, color: C.green, fontWeight: '700',
-    backgroundColor: C.greenUltra, paddingHorizontal: 10, paddingVertical: 5, borderRadius: C.rSm,
-  },
 
   // Admin rows
   adminRow: {

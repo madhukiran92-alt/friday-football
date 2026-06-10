@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Become an organiser — Pitch</title>
+  <meta name="description" content="Create your Pitch organiser account. Run games, manage players, and generate teams." />
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏟</text></svg>" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:       #16a34a;
+      --green-deep:  #14532d;
+      --green-light: #dcfce7;
+      --ink:         #0f172a;
+      --ink-soft:    #1e293b;
+      --muted:       #64748b;
+      --subtle:      #94a3b8;
+      --bg:          #f8fafc;
+      --surface:     #ffffff;
+      --separator:   #e2e8f0;
+      --red:         #dc2626;
+      --red-light:   #fef2f2;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(160deg, #f0fdf4 0%, #ffffff 50%, #f8fafc 100%);
+      color: var(--ink-soft);
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    nav {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--separator);
+      padding: 0 24px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo { font-size: 20px; font-weight: 800; color: var(--ink); letter-spacing: -0.5px; text-decoration: none; }
+    .nav-logo span { color: var(--green); }
+    .nav-back { font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: none; }
+    .nav-back:hover { color: var(--ink); }
+
+    .wrap {
+      max-width: 440px; margin: 0 auto;
+      padding: 56px 24px 80px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--green-light); color: var(--green-deep);
+      font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
+      padding: 5px 12px; border-radius: 999px;
+      margin-bottom: 18px;
+    }
+    h1 {
+      font-size: 34px; font-weight: 900; color: var(--ink);
+      letter-spacing: -1.2px; line-height: 1.15;
+      margin-bottom: 10px;
+    }
+    .sub { font-size: 15px; color: var(--muted); margin-bottom: 36px; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--separator);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 10px 36px rgba(15, 23, 42, .06);
+    }
+
+    label {
+      display: block;
+      font-size: 13px; font-weight: 600; color: var(--ink-soft);
+      margin: 16px 0 6px;
+    }
+    label:first-of-type { margin-top: 0; }
+    input {
+      width: 100%;
+      background: var(--bg);
+      border: 1.5px solid transparent;
+      border-radius: 12px;
+      padding: 13px 14px;
+      font-size: 15px; color: var(--ink);
+      outline: none;
+      transition: border-color .15s, background .15s;
+    }
+    input:focus { border-color: var(--green); background: var(--surface); }
+    input.code { text-transform: uppercase; letter-spacing: 2px; font-family: ui-monospace, 'SF Mono', Menlo, monospace; }
+
+    .hint { font-size: 12px; color: var(--subtle); margin-top: 5px; }
+
+    button {
+      width: 100%;
+      background: var(--green);
+      color: #fff;
+      border: none; border-radius: 12px;
+      padding: 15px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer;
+      margin-top: 24px;
+      transition: opacity .15s, transform .15s;
+    }
+    button:hover:not(:disabled) { opacity: .9; transform: translateY(-1px); }
+    button:disabled { opacity: .5; cursor: default; }
+
+    .msg {
+      margin-top: 16px;
+      border-radius: 12px;
+      padding: 13px 14px;
+      font-size: 14px; font-weight: 600;
+      display: none;
+    }
+    .msg.error { display: block; background: var(--red-light); color: var(--red); }
+    .msg.success { display: block; background: var(--green-light); color: var(--green-deep); }
+
+    .success-card { text-align: center; padding: 12px 0; }
+    .success-card .tick { font-size: 44px; margin-bottom: 12px; }
+    .success-card h2 { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -0.4px; margin-bottom: 8px; }
+    .success-card p { font-size: 14px; color: var(--muted); }
+
+    .foot {
+      text-align: center; margin-top: 28px;
+      font-size: 13px; color: var(--subtle);
+    }
+    .foot a { color: var(--muted); }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/" class="nav-logo">Pitch<span>.</span></a>
+    <a href="/" class="nav-back">← Back to pitchapp.net</a>
+  </nav>
+
+  <div class="wrap">
+    <span class="badge">FOR ORGANISERS</span>
+    <h1>Create your organiser account</h1>
+    <p class="sub">
+      Organiser accounts are created here on the web with an invite code.
+      Once created, sign in to the Pitch app with the same email and password —
+      you'll see the admin tools automatically.
+    </p>
+
+    <div class="card" id="card">
+      <form id="form">
+        <label for="name">Your name</label>
+        <input id="name" type="text" autocomplete="name" placeholder="e.g. Sam Kerr" required />
+
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="new-password" placeholder="At least 8 characters" minlength="8" required />
+
+        <label for="code">Invite code</label>
+        <input id="code" class="code" type="text" autocomplete="off" placeholder="e.g. AB3X7KQR" maxlength="8" required />
+        <p class="hint">Don't have a code? Ask the organiser who invited you, or email hello@pitchapp.net.</p>
+
+        <button id="submit" type="submit">Create organiser account</button>
+        <div class="msg" id="msg"></div>
+      </form>
+    </div>
+
+    <p class="foot">
+      By creating an account you agree to our terms of service and privacy policy.<br>
+      Questions? <a href="mailto:hello@pitchapp.net">hello@pitchapp.net</a>
+    </p>
+  </div>
+
+  <script>
+    const FN_URL = 'https://jyxjqisqbcnyxhtkoayw.supabase.co/functions/v1/create-admin-account';
+
+    const form = document.getElementById('form');
+    const msg = document.getElementById('msg');
+    const submit = document.getElementById('submit');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.className = 'msg';
+      submit.disabled = true;
+      submit.textContent = 'Creating account…';
+
+      try {
+        const res = await fetch(FN_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+            invite_code: document.getElementById('code').value,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok && data.ok) {
+          document.getElementById('card').innerHTML = `
+            <div class="success-card">
+              <div class="tick">✅</div>
+              <h2>You're all set!</h2>
+              <p>Your organiser account is ready. Open the Pitch app and sign in with
+              your email and password — the admin tools will be there waiting.</p>
+            </div>`;
+        } else {
+          msg.textContent = data.error || 'Something went wrong, please try again.';
+          msg.className = 'msg error';
+        }
+      } catch {
+        msg.textContent = "Couldn't reach the server. Check your connection and try again.";
+        msg.className = 'msg error';
+      }
+
+      submit.disabled = false;
+      submit.textContent = 'Create organiser account';
+    });
+  </script>
+
+</body>
+</html>

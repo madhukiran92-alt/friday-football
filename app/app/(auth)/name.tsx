@@ -11,17 +11,13 @@ import { C } from '../../src/lib/theme';
 export default function NameScreen() {
   const { session, refreshProfile } = useAuth();
   const [name, setName] = useState('');
-  const [inviteCode, setInviteCode] = useState('');
-  const [showInvite, setShowInvite] = useState(false);
   const [nameFocused, setNameFocused] = useState(false);
-  const [inviteFocused, setInviteFocused] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function saveName() {
     if (!name.trim()) return;
     setLoading(true);
 
-    // Save name
     const { error } = await supabase
       .from('profiles')
       .update({ name: name.trim() })
@@ -31,22 +27,6 @@ export default function NameScreen() {
       setLoading(false);
       Alert.alert('Error', error.message);
       return;
-    }
-
-    // Try to redeem invite code if provided
-    if (inviteCode.trim()) {
-      const { data: redeemed, error: redeemError } = await supabase
-        .rpc('redeem_admin_invite', { p_code: inviteCode.trim().toUpperCase() });
-
-      if (redeemError || !redeemed) {
-        setLoading(false);
-        Alert.alert(
-          'Invalid invite code',
-          'That code doesn\'t exist or has already been used. You\'ve been signed up as a player — ask an admin to grant access.',
-          [{ text: 'OK', onPress: async () => { await refreshProfile(); router.replace('/'); } }]
-        );
-        return;
-      }
     }
 
     await refreshProfile();
@@ -79,35 +59,11 @@ export default function NameScreen() {
               onChangeText={setName}
               autoCapitalize="words"
               autoFocus
-              returnKeyType="next"
+              returnKeyType="done"
+              onSubmitEditing={saveName}
               onFocus={() => setNameFocused(true)}
               onBlur={() => setNameFocused(false)}
             />
-
-            {/* Invite code toggle */}
-            {!showInvite ? (
-              <TouchableOpacity style={styles.inviteToggle} onPress={() => setShowInvite(true)} activeOpacity={0.7}>
-                <Text style={styles.inviteToggleText}>Have an admin invite code? →</Text>
-              </TouchableOpacity>
-            ) : (
-              <View style={styles.inviteBox}>
-                <Text style={styles.inviteLabel}>Admin Invite Code</Text>
-                <TextInput
-                  style={[styles.input, styles.inviteInput, inviteFocused && styles.inputFocused]}
-                  placeholder="e.g. AB3X7KQR"
-                  placeholderTextColor={C.subtle}
-                  value={inviteCode}
-                  onChangeText={t => setInviteCode(t.toUpperCase())}
-                  autoCapitalize="characters"
-                  autoCorrect={false}
-                  returnKeyType="done"
-                  onSubmitEditing={saveName}
-                  onFocus={() => setInviteFocused(true)}
-                  onBlur={() => setInviteFocused(false)}
-                />
-                <Text style={styles.inviteHint}>Optional — leave blank to sign up as a player.</Text>
-              </View>
-            )}
 
             <TouchableOpacity
               style={[styles.btn, disabled && styles.btnDisabled]}
@@ -160,17 +116,6 @@ const styles = StyleSheet.create({
     fontSize: 17, color: C.inkSoft, marginBottom: 14,
   },
   inputFocused: { borderColor: C.green, backgroundColor: C.surface },
-
-  inviteToggle: { alignSelf: 'flex-start', marginBottom: 16, marginTop: -6 },
-  inviteToggleText: { fontSize: 13, color: C.green, fontWeight: '600' },
-
-  inviteBox: {
-    backgroundColor: C.greenUltra, borderRadius: C.rMd,
-    padding: 14, marginBottom: 14,
-  },
-  inviteLabel: { fontSize: 13, fontWeight: '700', color: C.green, marginBottom: 8 },
-  inviteInput: { marginBottom: 0, backgroundColor: C.surface },
-  inviteHint: { fontSize: 12, color: C.muted, marginTop: 8, lineHeight: 16 },
 
   btn: {
     backgroundColor: C.green, borderRadius: C.rMd, paddingVertical: 16,

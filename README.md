@@ -15,7 +15,7 @@ Pitch is a mobile app (iOS + Android) for managing casual sports games — creat
 - **Push notifications** — players notified when added to a game, confirmed off the waitlist, or a game is cancelled
 - **Offline error states** — clear "Can't connect" screen with retry instead of a silent empty list
 - **Team generation** — balanced random splits, saved per game
-- **Admin system** — invite-only admin accounts via one-time codes
+- **Single-door admin accounts** — organiser accounts are created only on the website ([pitchapp.net/admin](https://pitchapp.net/admin/)) with a one-time invite code; the app's signup creates players only. Built so the web gate can later become a paid checkout without app changes.
 - **Admin portal** — create/edit games, manage players, generate teams, manage admins
 - **Real-time updates** — player list syncs live as people join or leave
 - **Bottom tab navigation** — instant switching between Games and Admin views
@@ -96,7 +96,11 @@ friday-football/
 │   └── assets/                  # App icon, splash screen
 ├── supabase/
 │   └── functions/
-│       └── notify-players/      # Edge function — sends Expo push notifications
+│       ├── notify-players/        # Edge function — sends Expo push notifications
+│       └── create-admin-account/  # Edge function — web organiser signup (invite-gated)
+├── landing/                       # pitchapp.net (Cloudflare Pages)
+│   ├── index.html                 # Landing page
+│   └── admin/index.html           # Organiser account signup
 ```
 
 ---
