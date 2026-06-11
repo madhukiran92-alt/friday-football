@@ -1,24 +1,26 @@
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
-import * as Device from 'expo-device';
 import { supabase } from '../lib/supabase';
 
 // Expo Go has no push-notification native module (removed in SDK 53+),
-// so expo-notifications must never be imported at module level — it
-// throws and takes the whole route layout down with it. We load it
-// lazily, and only in real builds on physical devices.
+// and stale dev-client builds may lack expo-device/expo-notifications
+// entirely. Nothing here may be imported at module level — a missing
+// native module would take the whole route layout down with it.
 const isExpoGo = Constants.executionEnvironment === 'storeClient';
 
 export function usePushNotifications(profileId: string | undefined) {
   useEffect(() => {
-    if (!profileId || isExpoGo || !Device.isDevice) return;
+    if (!profileId || isExpoGo) return;
     registerAndSaveToken(profileId);
   }, [profileId]);
 }
 
 async function registerAndSaveToken(profileId: string) {
   try {
+    const Device = await import('expo-device');
+    if (!Device.isDevice) return; // simulators can't receive push tokens
+
     const Notifications = await import('expo-notifications');
 
     // Show notifications as banners even when the app is in the foreground
