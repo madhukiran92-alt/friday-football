@@ -5,139 +5,111 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Become an organiser — Pitch</title>
   <meta name="description" content="Create your free Pitch organiser account. Run games, manage players, and generate teams for any sport." />
-  <meta name="theme-color" content="#060d09" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏟</text></svg>" />
+  <meta name="theme-color" content="#10B981" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2334D399'/%3E%3Cstop offset='1' stop-color='%23047857'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1024' height='1024' rx='230' fill='url(%23g)'/%3E%3Crect x='337' y='267' width='100' height='490' rx='50' fill='%23fff'/%3E%3Ccircle cx='512' cy='442' r='125' fill='none' stroke='%23fff' stroke-width='100'/%3E%3Ccircle cx='512' cy='442' r='46' fill='%23BEF264'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:          #060d09;
-      --bg-deep:     #030704;
-      --surface:     rgba(255,255,255,.035);
-      --border:      rgba(255,255,255,.09);
-      --border-glow: rgba(74,222,128,.35);
-      --green:       #22c55e;
-      --green-soft:  #4ade80;
-      --lime:        #a3e635;
-      --teal:        #2dd4bf;
-      --white:       #f4faf6;
-      --body:        #9fb1a6;
-      --dim:         #5d6f64;
-      --red:         #f87171;
-      --font-display: 'Space Grotesk', -apple-system, sans-serif;
-      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --bg:        #F7F8FA;
+      --surface:   #FFFFFF;
+      --ink:       #0F172A;
+      --ink-soft:  #334155;
+      --muted:     #64748B;
+      --subtle:    #94A3B8;
+      --border:    #E2E8F0;
+      --emerald:   #10B981;
+      --em-deep:   #047857;
+      --em-soft:   #059669;
+      --mint:      #D1FAE5;
+      --mint-ultra:#ECFDF5;
+      --red:       #E11D48;
+      --red-light: #FFF1F2;
+      --font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
     body {
-      font-family: var(--font-body);
-      background: var(--bg);
-      color: var(--body);
+      font-family: var(--font);
+      background:
+        radial-gradient(ellipse 60% 40% at 50% -5%, var(--mint-ultra), transparent 70%),
+        var(--bg);
+      color: var(--ink-soft);
       line-height: 1.6;
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
     }
 
-    ::selection { background: rgba(34,197,94,.35); color: #fff; }
-
-    /* Backdrop */
-    .backdrop {
-      position: fixed; inset: 0;
-      z-index: -2;
-      background:
-        radial-gradient(ellipse 70% 45% at 50% -5%, rgba(74,222,128,.13), transparent 65%),
-        radial-gradient(ellipse 40% 35% at 88% 30%, rgba(45,212,191,.07), transparent 70%),
-        linear-gradient(180deg, #08110c 0%, var(--bg) 40%, var(--bg-deep) 100%);
-    }
-    .backdrop::after {
-      content: '';
-      position: absolute; inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-      opacity: .035;
-      pointer-events: none;
-    }
+    ::selection { background: var(--mint); color: var(--em-deep); }
 
     nav {
       position: sticky; top: 0; z-index: 100;
-      background: rgba(6,13,9,.6);
-      backdrop-filter: blur(18px) saturate(1.3);
-      -webkit-backdrop-filter: blur(18px) saturate(1.3);
-      border-bottom: 1px solid rgba(255,255,255,.05);
+      background: rgba(255,255,255,.82);
+      backdrop-filter: blur(16px) saturate(1.3);
+      -webkit-backdrop-filter: blur(16px) saturate(1.3);
+      border-bottom: 1px solid rgba(226,232,240,.7);
       padding: 0 28px; height: 66px;
       display: flex; align-items: center; justify-content: space-between;
     }
     .nav-logo {
-      font-family: var(--font-display);
-      font-size: 22px; font-weight: 700; color: var(--white);
+      font-size: 21px; font-weight: 800; color: var(--ink);
       letter-spacing: -0.5px; text-decoration: none;
-      display: flex; align-items: center; gap: 9px;
+      display: flex; align-items: center; gap: 10px;
     }
-    .nav-logo .dot {
-      width: 10px; height: 10px; border-radius: 50%;
-      background: var(--green-soft);
-      box-shadow: 0 0 14px rgba(74,222,128,.9);
-      animation: pulse-dot 2.4s ease-in-out infinite;
-    }
-    @keyframes pulse-dot {
-      0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(74,222,128,.7); }
-      50% { transform: scale(1.25); box-shadow: 0 0 22px rgba(74,222,128,1); }
-    }
-    .nav-back { font-size: 14px; font-weight: 600; color: var(--body); text-decoration: none; transition: color .15s; }
-    .nav-back:hover { color: var(--white); }
+    .nav-back { font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: none; transition: color .15s; }
+    .nav-back:hover { color: var(--ink); }
 
     .wrap {
       max-width: 1000px; margin: 0 auto;
-      padding: 72px 24px 100px;
+      padding: 68px 24px 96px;
       display: grid;
       grid-template-columns: 1fr 430px;
-      gap: 64px;
+      gap: 60px;
       align-items: start;
     }
     @media (max-width: 880px) {
-      .wrap { grid-template-columns: 1fr; gap: 44px; max-width: 500px; padding-top: 52px; }
+      .wrap { grid-template-columns: 1fr; gap: 44px; max-width: 500px; padding-top: 48px; }
     }
 
     .badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(255,255,255,.05);
-      border: 1px solid rgba(74,222,128,.25);
-      color: var(--green-soft);
-      font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
+      display: inline-flex; align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--mint);
+      color: var(--em-deep);
+      font-size: 12px; font-weight: 800; letter-spacing: 1.5px;
       padding: 7px 16px; border-radius: 999px;
       margin-bottom: 22px;
-      box-shadow: 0 0 30px rgba(34,197,94,.1);
+      box-shadow: 0 4px 14px rgba(16,185,129,.1);
       opacity: 0;
       animation: rise .7s cubic-bezier(.2,.7,.3,1) .05s forwards;
     }
     h1 {
-      font-family: var(--font-display);
-      font-size: clamp(36px, 5vw, 50px);
-      font-weight: 700; color: var(--white);
-      letter-spacing: -0.035em; line-height: 1.08;
+      font-size: clamp(34px, 5vw, 48px);
+      font-weight: 800; color: var(--ink);
+      letter-spacing: -0.035em; line-height: 1.1;
       margin-bottom: 14px;
       opacity: 0;
       animation: rise .8s cubic-bezier(.2,.7,.3,1) .15s forwards;
     }
     h1 em {
       font-style: normal;
-      background: linear-gradient(95deg, var(--green-soft), var(--lime));
+      background: linear-gradient(95deg, var(--emerald), #65A30D);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 0 24px rgba(163,230,53,.3));
     }
     .sub {
-      font-size: 16px; color: var(--body); margin-bottom: 40px;
+      font-size: 16px; color: var(--muted); margin-bottom: 38px;
       opacity: 0;
       animation: rise .8s cubic-bezier(.2,.7,.3,1) .25s forwards;
     }
-    .sub strong { color: var(--white); font-weight: 600; }
+    .sub strong { color: var(--ink); font-weight: 700; }
 
     @keyframes rise {
-      from { opacity: 0; transform: translateY(24px); }
+      from { opacity: 0; transform: translateY(22px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
@@ -148,119 +120,97 @@
       content: '';
       position: absolute; left: 19px; top: 44px; bottom: 2px;
       width: 2px;
-      background: linear-gradient(to bottom, var(--green-soft), rgba(74,222,128,.08));
-      box-shadow: 0 0 10px rgba(74,222,128,.2);
+      background: linear-gradient(to bottom, var(--emerald), var(--mint));
     }
     .step-num {
       flex-shrink: 0;
       width: 40px; height: 40px; border-radius: 13px;
-      background: linear-gradient(135deg, var(--green), #15803d);
+      background: linear-gradient(135deg, #34D399, var(--em-soft));
       color: #fff;
       display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-display);
-      font-size: 16px; font-weight: 700;
+      font-size: 16px; font-weight: 800;
       position: relative; z-index: 1;
-      box-shadow: 0 0 24px rgba(34,197,94,.35), 0 1px 0 rgba(255,255,255,.25) inset;
+      box-shadow: 0 6px 16px rgba(16,185,129,.3);
     }
     .step-title {
-      font-family: var(--font-display);
-      font-size: 17px; font-weight: 700; color: var(--white);
+      font-size: 17px; font-weight: 800; color: var(--ink);
       letter-spacing: -0.2px; margin-bottom: 4px;
     }
-    .step-desc { font-size: 14px; color: var(--body); line-height: 1.6; }
+    .step-desc { font-size: 14px; color: var(--muted); line-height: 1.6; }
 
     .free-note {
       margin-top: 8px;
-      background: rgba(34,197,94,.08);
-      border: 1px solid rgba(74,222,128,.2);
+      background: var(--mint-ultra);
+      border: 1px solid var(--mint);
       border-radius: 14px;
       padding: 14px 18px;
-      font-size: 13px; font-weight: 600; color: var(--green-soft);
+      font-size: 13px; font-weight: 700; color: var(--em-deep);
       opacity: 0;
       animation: rise .8s ease .45s forwards;
     }
 
     /* Form card */
     .card-wrap { position: relative; opacity: 0; animation: rise .9s cubic-bezier(.2,.7,.3,1) .3s forwards; }
-    .card-glow {
-      position: absolute; inset: -30px;
-      background: radial-gradient(ellipse 60% 55% at 50% 45%, rgba(34,197,94,.16), transparent 70%);
-      filter: blur(24px);
-      pointer-events: none;
-    }
     .card {
       position: relative;
-      background: rgba(10,18,13,.75);
-      backdrop-filter: blur(16px);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 24px;
       padding: 30px;
-      box-shadow: 0 30px 70px rgba(0,0,0,.45);
-    }
-    .card::before {
-      content: '';
-      position: absolute; inset: -1px;
-      border-radius: 24px;
-      padding: 1px;
-      background: linear-gradient(160deg, rgba(74,222,128,.4), transparent 35%, transparent 70%, rgba(45,212,191,.25));
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      pointer-events: none;
+      box-shadow: 0 24px 60px rgba(15,23,42,.1);
     }
     .card-title {
-      font-family: var(--font-display);
-      font-size: 20px; font-weight: 700; color: var(--white);
+      font-size: 20px; font-weight: 800; color: var(--ink);
       letter-spacing: -0.3px; margin-bottom: 20px;
     }
 
     label {
       display: block;
-      font-size: 13px; font-weight: 600; color: var(--white);
+      font-size: 13px; font-weight: 700; color: var(--ink-soft);
       margin: 18px 0 7px;
     }
     label:first-of-type { margin-top: 0; }
     input {
       width: 100%;
-      background: rgba(255,255,255,.05);
-      border: 1.5px solid rgba(255,255,255,.1);
+      background: #F1F5F9;
+      border: 1.5px solid transparent;
       border-radius: 12px;
       padding: 13px 15px;
-      font-size: 15px; color: var(--white);
-      font-family: var(--font-body);
+      font-size: 15px; color: var(--ink);
+      font-family: var(--font);
       outline: none;
       transition: border-color .2s, background .2s, box-shadow .2s;
     }
-    input::placeholder { color: var(--dim); }
+    input::placeholder { color: var(--subtle); }
     input:focus {
-      border-color: var(--green-soft);
-      background: rgba(255,255,255,.07);
-      box-shadow: 0 0 0 3px rgba(34,197,94,.15);
+      border-color: var(--emerald);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(16,185,129,.12);
     }
-    .hint { font-size: 12px; color: var(--dim); margin-top: 6px; }
+    .hint { font-size: 12px; color: var(--subtle); margin-top: 6px; }
 
     button {
       position: relative;
       width: 100%;
-      background: linear-gradient(135deg, var(--green) 0%, #15803d 100%);
+      background: linear-gradient(135deg, #34D399, var(--em-soft));
       color: #fff;
       border: none; border-radius: 12px;
       padding: 16px;
       font-size: 15px; font-weight: 700;
-      font-family: var(--font-body);
+      font-family: var(--font);
       cursor: pointer;
       margin-top: 26px;
       overflow: hidden;
+      box-shadow: 0 10px 24px rgba(16,185,129,.32);
       transition: transform .2s, box-shadow .2s;
-      box-shadow: 0 0 28px rgba(34,197,94,.3), 0 1px 0 rgba(255,255,255,.2) inset;
     }
-    button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 0 40px rgba(34,197,94,.5), 0 1px 0 rgba(255,255,255,.2) inset; }
+    button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 14px 32px rgba(16,185,129,.42); }
     button:disabled { opacity: .5; cursor: default; }
     button::after {
       content: '';
       position: absolute; top: 0; left: -80%;
       width: 50%; height: 100%;
-      background: linear-gradient(105deg, transparent, rgba(255,255,255,.4), transparent);
+      background: linear-gradient(105deg, transparent, rgba(255,255,255,.45), transparent);
       transform: skewX(-20deg);
       animation: shine 4.5s ease-in-out infinite;
     }
@@ -275,8 +225,8 @@
     }
     .msg.error {
       display: block;
-      background: rgba(248,113,113,.1);
-      border: 1px solid rgba(248,113,113,.3);
+      background: var(--red-light);
+      border: 1px solid #FECDD3;
       color: var(--red);
     }
 
@@ -288,18 +238,17 @@
     }
     @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
     .success-card h2 {
-      font-family: var(--font-display);
-      font-size: 24px; font-weight: 700; color: var(--white);
+      font-size: 24px; font-weight: 800; color: var(--ink);
       letter-spacing: -0.4px; margin-bottom: 10px;
     }
-    .success-card p { font-size: 14px; color: var(--body); line-height: 1.65; }
+    .success-card p { font-size: 14px; color: var(--muted); line-height: 1.65; }
 
     .foot {
       text-align: center; margin-top: 24px;
-      font-size: 12px; color: var(--dim); line-height: 1.7;
+      font-size: 12px; color: var(--subtle); line-height: 1.7;
     }
-    .foot a { color: var(--body); }
-    .foot a:hover { color: var(--white); }
+    .foot a { color: var(--muted); }
+    .foot a:hover { color: var(--ink); }
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
@@ -312,10 +261,11 @@
 </head>
 <body>
 
-  <div class="backdrop"></div>
-
   <nav>
-    <a href="/" class="nav-logo"><span class="dot"></span>Pitch</a>
+    <a href="/" class="nav-logo">
+      <svg width="30" height="30" viewBox="0 0 1024 1024"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34D399"/><stop offset="1" stop-color="#047857"/></linearGradient></defs><rect width="1024" height="1024" rx="230" fill="url(#lg1)"/><rect x="337" y="267" width="100" height="490" rx="50" fill="#fff"/><circle cx="512" cy="442" r="125" fill="none" stroke="#fff" stroke-width="100"/><circle cx="512" cy="442" r="46" fill="#BEF264"/></svg>
+      Pitch
+    </a>
     <a href="/" class="nav-back">← Back to pitchapp.net</a>
   </nav>
 
@@ -361,7 +311,6 @@
 
     <!-- Right: form -->
     <div class="card-wrap">
-      <div class="card-glow"></div>
       <div class="card" id="card">
         <div class="card-title">Create your organiser account</div>
         <form id="form">
