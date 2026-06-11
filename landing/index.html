@@ -6,53 +6,124 @@
   <title>Pitch — Organise your game</title>
   <meta name="description" content="Pitch makes it easy to organise recreational sports games, manage your squad, and handle the waitlist automatically." />
   <meta property="og:title" content="Pitch — Organise your game" />
-  <meta property="og:description" content="Create a game, invite players, let Pitch handle the rest." />
+  <meta property="og:description" content="Create a game, invite your squad, let Pitch handle the rest." />
   <meta property="og:url" content="https://pitchapp.net" />
   <meta property="og:type" content="website" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏟</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
       --green:       #16a34a;
       --green-deep:  #14532d;
+      --green-vivid: #22c55e;
       --green-light: #dcfce7;
-      --ink:         #0f172a;
+      --lime:        #a3e635;
+      --ink:         #0b1220;
       --ink-soft:    #1e293b;
-      --muted:       #64748b;
+      --muted:       #5b6b81;
       --subtle:      #94a3b8;
       --bg:          #f8fafc;
       --surface:     #ffffff;
       --separator:   #e2e8f0;
+      --font-display: 'Space Grotesk', -apple-system, sans-serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
     html { scroll-behavior: smooth; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--surface);
+      font-family: var(--font-body);
+      background: var(--bg);
       color: var(--ink-soft);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
 
-    /* ── Nav ── */
+    h1, h2, h3, .display { font-family: var(--font-display); }
+
+    /* ════════ Aurora background ════════ */
+    .aurora {
+      position: fixed; inset: 0;
+      z-index: -2;
+      overflow: hidden;
+      background: linear-gradient(165deg, #f0fdf4 0%, #ffffff 45%, #f0f9ff 100%);
+    }
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: .55;
+      will-change: transform;
+    }
+    .orb-1 {
+      width: 560px; height: 560px;
+      background: radial-gradient(circle, rgba(34,197,94,.5), transparent 65%);
+      top: -180px; left: -120px;
+      animation: drift1 26s ease-in-out infinite alternate;
+    }
+    .orb-2 {
+      width: 480px; height: 480px;
+      background: radial-gradient(circle, rgba(163,230,53,.4), transparent 65%);
+      top: 30%; right: -160px;
+      animation: drift2 32s ease-in-out infinite alternate;
+    }
+    .orb-3 {
+      width: 420px; height: 420px;
+      background: radial-gradient(circle, rgba(45,212,191,.35), transparent 65%);
+      bottom: -140px; left: 30%;
+      animation: drift3 38s ease-in-out infinite alternate;
+    }
+    @keyframes drift1 { to { transform: translate(120px, 90px) scale(1.15); } }
+    @keyframes drift2 { to { transform: translate(-100px, -70px) scale(1.2); } }
+    @keyframes drift3 { to { transform: translate(-80px, -110px) scale(1.1); } }
+
+    /* pitch line grid overlay */
+    .aurora::after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(to right, rgba(22,163,74,.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(22,163,74,.05) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 75%);
+    }
+
+    /* ════════ Nav ════════ */
     nav {
       position: sticky; top: 0; z-index: 100;
-      background: rgba(255,255,255,0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--separator);
-      padding: 0 24px;
-      height: 60px;
+      background: rgba(255,255,255,.72);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border-bottom: 1px solid rgba(226,232,240,.7);
+      padding: 0 28px;
+      height: 64px;
       display: flex; align-items: center; justify-content: space-between;
+      transition: box-shadow .3s;
     }
+    nav.scrolled { box-shadow: 0 8px 32px rgba(11,18,32,.08); }
     .nav-logo {
-      font-size: 20px; font-weight: 800; color: var(--ink);
+      font-family: var(--font-display);
+      font-size: 22px; font-weight: 700; color: var(--ink);
       letter-spacing: -0.5px; text-decoration: none;
+      display: flex; align-items: center; gap: 8px;
     }
-    .nav-logo span { color: var(--green); }
-    .nav-right { display: flex; align-items: center; gap: 18px; }
+    .nav-logo .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--green-vivid);
+      box-shadow: 0 0 12px rgba(34,197,94,.8);
+      animation: pulse-dot 2.4s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(34,197,94,.7); }
+      50% { transform: scale(1.25); box-shadow: 0 0 20px rgba(34,197,94,1); }
+    }
+    .nav-right { display: flex; align-items: center; gap: 22px; }
     .nav-link {
       font-size: 14px; font-weight: 600; color: var(--muted);
       text-decoration: none;
@@ -60,341 +131,637 @@
     }
     .nav-link:hover { color: var(--ink); }
     .nav-cta {
-      background: var(--green); color: #fff;
-      padding: 8px 20px; border-radius: 999px;
+      position: relative;
+      background: linear-gradient(135deg, var(--green) 0%, #15803d 100%);
+      color: #fff;
+      padding: 9px 22px; border-radius: 999px;
       font-size: 14px; font-weight: 700;
       text-decoration: none;
-      transition: opacity .15s;
+      overflow: hidden;
+      transition: transform .2s, box-shadow .2s;
+      box-shadow: 0 4px 16px rgba(22,163,74,.35);
     }
-    .nav-cta:hover { opacity: 0.85; }
-
-    /* ── Hero ── */
-    .hero {
-      min-height: calc(100vh - 60px);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      text-align: center;
-      padding: 80px 24px 60px;
-      background: linear-gradient(160deg, #f0fdf4 0%, #ffffff 50%, #f8fafc 100%);
-      position: relative; overflow: hidden;
-    }
-
-    /* Subtle pitch lines background */
-    .hero::before {
+    .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(22,163,74,.45); }
+    .nav-cta::after {
       content: '';
-      position: absolute; inset: 0;
-      background-image:
-        linear-gradient(to right, rgba(22,163,74,.04) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(22,163,74,.04) 1px, transparent 1px);
-      background-size: 60px 60px;
-      pointer-events: none;
+      position: absolute; top: 0; left: -80%;
+      width: 50%; height: 100%;
+      background: linear-gradient(105deg, transparent, rgba(255,255,255,.45), transparent);
+      transform: skewX(-20deg);
+      animation: shine 4s ease-in-out infinite;
     }
+    @keyframes shine { 0%, 60% { left: -80%; } 100% { left: 160%; } }
+
+    /* ════════ Hero ════════ */
+    .hero {
+      position: relative;
+      display: flex; flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 96px 24px 40px;
+      overflow: visible;
+    }
+
+    /* floating sport emojis */
+    .floaters { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+    .floater {
+      position: absolute;
+      font-size: 34px;
+      opacity: 0;
+      filter: drop-shadow(0 8px 16px rgba(11,18,32,.12));
+      animation: floater-in 1s ease forwards, bob 7s ease-in-out infinite;
+    }
+    .floater:nth-child(odd) { animation-duration: 1s, 9s; }
+    .f1 { top: 12%; left: 9%;  animation-delay: .9s, .9s; }
+    .f2 { top: 24%; right: 8%; animation-delay: 1.1s, 1.1s; font-size: 42px; }
+    .f3 { top: 56%; left: 5%;  animation-delay: 1.3s, 1.3s; font-size: 28px; }
+    .f4 { top: 47%; right: 12%; animation-delay: 1.5s, 1.5s; }
+    .f5 { top: 8%;  left: 38%; animation-delay: 1.7s, 1.7s; font-size: 24px; }
+    .f6 { top: 70%; right: 6%; animation-delay: 1.9s, 1.9s; font-size: 30px; }
+    @keyframes floater-in { to { opacity: .85; } }
+    @keyframes bob {
+      0%, 100% { transform: translateY(0) rotate(-4deg); }
+      50% { transform: translateY(-22px) rotate(5deg); }
+    }
+    @media (max-width: 720px) { .floater { display: none; } }
 
     .hero-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: var(--green-light); color: var(--green-deep);
-      font-size: 13px; font-weight: 700; letter-spacing: 0.3px;
-      padding: 6px 14px; border-radius: 999px;
-      margin-bottom: 28px;
+      position: relative; z-index: 1;
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(220,252,231,.8);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(34,197,94,.25);
+      color: var(--green-deep);
+      font-size: 13px; font-weight: 700; letter-spacing: .3px;
+      padding: 7px 16px; border-radius: 999px;
+      margin-bottom: 30px;
+      opacity: 0;
+      animation: rise .7s cubic-bezier(.2,.7,.3,1) .1s forwards;
+    }
+    .hero-badge .live {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green-vivid);
+      animation: pulse-dot 2s ease-in-out infinite;
     }
 
     .hero h1 {
-      font-size: clamp(48px, 8vw, 84px);
-      font-weight: 900;
+      position: relative; z-index: 1;
+      font-size: clamp(52px, 9vw, 104px);
+      font-weight: 700;
       color: var(--ink);
-      letter-spacing: -3px;
-      line-height: 1.05;
-      margin-bottom: 24px;
+      letter-spacing: -0.04em;
+      line-height: 1.02;
+      margin-bottom: 26px;
     }
+    .hero h1 .line { display: block; overflow: hidden; }
+    .hero h1 .word {
+      display: inline-block;
+      transform: translateY(110%);
+      animation: word-up .9s cubic-bezier(.2,.7,.2,1) forwards;
+    }
+    .hero h1 .line:nth-child(1) .word { animation-delay: .15s; }
+    .hero h1 .line:nth-child(2) .word { animation-delay: .3s; }
+    @keyframes word-up { to { transform: translateY(0); } }
+
     .hero h1 em {
       font-style: normal;
-      color: var(--green);
+      background: linear-gradient(100deg, var(--green-vivid) 10%, var(--lime) 50%, var(--green) 90%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradient-slide 5s linear infinite;
     }
+    @keyframes gradient-slide { to { background-position: 200% center; } }
 
     .hero-sub {
-      font-size: clamp(18px, 2.5vw, 22px);
+      position: relative; z-index: 1;
+      font-size: clamp(17px, 2.4vw, 21px);
       color: var(--muted);
-      max-width: 520px;
-      margin: 0 auto 44px;
-      line-height: 1.5;
+      max-width: 540px;
+      margin: 0 auto 42px;
+      line-height: 1.55;
+      opacity: 0;
+      animation: rise .8s cubic-bezier(.2,.7,.3,1) .5s forwards;
+    }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(26px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .hero-buttons {
-      display: flex; gap: 12px; flex-wrap: wrap;
+      position: relative; z-index: 1;
+      display: flex; gap: 14px; flex-wrap: wrap;
       justify-content: center;
+      opacity: 0;
+      animation: rise .8s cubic-bezier(.2,.7,.3,1) .65s forwards;
     }
-
     .btn-store {
       display: inline-block;
       text-decoration: none;
-      transition: transform .15s, opacity .15s;
+      transition: transform .25s cubic-bezier(.2,.7,.3,1), filter .25s;
+      filter: drop-shadow(0 10px 24px rgba(11,18,32,.18));
     }
-    .btn-store:hover { transform: translateY(-2px); opacity: 0.9; }
-    .btn-store img { height: 54px; display: block; }
+    .btn-store:hover { transform: translateY(-4px) scale(1.03); filter: drop-shadow(0 18px 36px rgba(11,18,32,.26)); }
+    .btn-store img { height: 56px; display: block; }
 
     .hero-note {
-      margin-top: 20px;
+      position: relative; z-index: 1;
+      margin-top: 22px;
       font-size: 13px; color: var(--subtle);
+      opacity: 0;
+      animation: rise .8s ease .8s forwards;
     }
     .hero-organiser {
-      display: inline-block;
-      margin-top: 14px;
+      position: relative; z-index: 1;
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 16px;
       font-size: 14px; color: var(--muted);
       text-decoration: none;
-      background: var(--surface);
+      background: rgba(255,255,255,.7);
+      backdrop-filter: blur(8px);
       border: 1.5px solid var(--separator);
       border-radius: 999px;
-      padding: 10px 22px;
-      transition: border-color .15s, transform .15s;
+      padding: 11px 24px;
+      transition: border-color .2s, transform .2s, box-shadow .2s;
+      opacity: 0;
+      animation: rise .8s ease .9s forwards;
     }
     .hero-organiser strong { color: var(--green); }
-    .hero-organiser:hover { border-color: var(--green); transform: translateY(-1px); }
-
-    /* ── Phone mockup ── */
-    .phone-wrap {
-      margin-top: 72px;
-      position: relative; display: inline-block;
+    .hero-organiser:hover {
+      border-color: var(--green-vivid);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(22,163,74,.18);
     }
+
+    /* ════════ Phone mockup ════════ */
+    .phone-stage {
+      position: relative; z-index: 1;
+      margin-top: 76px;
+      perspective: 1200px;
+      opacity: 0;
+      animation: rise 1s cubic-bezier(.2,.7,.3,1) 1s forwards;
+    }
+    .phone-glow {
+      position: absolute; inset: -40px -80px;
+      background: radial-gradient(ellipse 60% 55% at 50% 60%, rgba(34,197,94,.3), transparent 70%);
+      filter: blur(30px);
+      animation: glow-pulse 5s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes glow-pulse { 0%, 100% { opacity: .8; } 50% { opacity: 1.2; } }
+
     .phone {
-      width: 280px;
-      background: var(--ink);
-      border-radius: 44px;
+      position: relative;
+      width: 300px;
+      background: linear-gradient(160deg, #1a2333, #0b1220);
+      border-radius: 48px;
       padding: 14px;
-      box-shadow: 0 40px 80px rgba(0,0,0,.25), 0 0 0 1px rgba(255,255,255,.05);
+      box-shadow:
+        0 60px 120px rgba(11,18,32,.35),
+        0 0 0 1px rgba(255,255,255,.08) inset,
+        0 2px 4px rgba(255,255,255,.12) inset;
+      transform-style: preserve-3d;
+      transition: transform .2s ease-out;
+      animation: phone-float 7s ease-in-out infinite;
+    }
+    @keyframes phone-float {
+      0%, 100% { translate: 0 0; }
+      50% { translate: 0 -16px; }
     }
     .phone-screen {
-      background: #f8fafc;
-      border-radius: 32px;
+      background: #f6f8fb;
+      border-radius: 36px;
       overflow: hidden;
-      aspect-ratio: 9/19.5;
+      aspect-ratio: 9/19.2;
       display: flex; flex-direction: column;
+      position: relative;
+    }
+    .phone-notch {
+      position: absolute; top: 10px; left: 50%;
+      transform: translateX(-50%);
+      width: 86px; height: 24px;
+      background: #0b1220;
+      border-radius: 999px;
+      z-index: 5;
     }
     .phone-header {
       background: #fff;
-      padding: 20px 18px 14px;
+      padding: 46px 18px 13px;
       border-bottom: 1px solid var(--separator);
       display: flex; align-items: center; justify-content: space-between;
     }
-    .phone-header-title { font-size: 17px; font-weight: 800; color: var(--ink); }
+    .phone-header-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--ink); }
     .phone-avatar {
       width: 32px; height: 32px; border-radius: 16px;
-      background: var(--green-deep);
+      background: linear-gradient(135deg, var(--green), var(--green-deep));
       display: flex; align-items: center; justify-content: center;
       font-size: 13px; font-weight: 800; color: #fff;
     }
     .phone-card {
       background: #fff;
-      margin: 12px;
-      border-radius: 16px;
+      margin: 12px 12px 0;
+      border-radius: 18px;
       padding: 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      box-shadow: 0 4px 14px rgba(11,18,32,.07);
     }
-    .phone-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
-    .phone-card-sport { font-size: 15px; }
-    .phone-card-title { font-size: 15px; font-weight: 800; color: var(--ink); }
-    .phone-card-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
-    .phone-badge {
-      background: #dcfce7; color: #15803d;
-      font-size: 10px; font-weight: 700;
-      padding: 3px 8px; border-radius: 999px;
+    .pc-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+    .pc-title-row { display: flex; align-items: center; gap: 6px; }
+    .pc-sport { font-size: 16px; }
+    .pc-title { font-size: 14px; font-weight: 800; color: var(--ink); }
+    .pc-meta { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+    .pc-badge {
+      background: var(--green-light); color: #15803d;
+      font-size: 9.5px; font-weight: 700;
+      padding: 3px 9px; border-radius: 999px;
     }
-    .phone-bar-wrap { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
-    .phone-bar-track {
-      flex: 1; height: 5px; background: #f1f5f9;
-      border-radius: 999px; overflow: hidden;
+    .pc-bar-row { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; }
+    .pc-bar-track { flex: 1; height: 5px; background: #eef2f7; border-radius: 999px; overflow: hidden; }
+    .pc-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), var(--green-vivid));
+      border-radius: 999px;
+      width: 71%;
     }
-    .phone-bar-fill { height: 100%; background: var(--green); border-radius: 999px; }
-    .phone-bar-label { font-size: 11px; font-weight: 700; color: var(--muted); }
-    .phone-join-btn {
-      background: var(--green); border-radius: 10px;
-      padding: 9px; text-align: center;
-      font-size: 13px; font-weight: 700; color: #fff;
+    .pc-bar-fill.demo { animation: bar-demo 9s ease-in-out infinite; }
+    @keyframes bar-demo {
+      0%, 28% { width: 50%; }
+      38%, 100% { width: 60%; }
     }
-    .phone-card2 { opacity: .55; }
+    .pc-bar-label { font-size: 10px; font-weight: 700; color: var(--muted); min-width: 30px; }
+    .pc-join {
+      background: linear-gradient(135deg, var(--green), #15803d);
+      border-radius: 11px;
+      padding: 9px;
+      text-align: center;
+      font-size: 12px; font-weight: 700; color: #fff;
+      box-shadow: 0 4px 12px rgba(22,163,74,.3);
+    }
+    .pc-chips { display: flex; gap: 4px; margin-top: 10px; flex-wrap: wrap; }
+    .pc-chip {
+      display: flex; align-items: center; gap: 4px;
+      background: #f1f5f9; border-radius: 999px;
+      font-size: 9px; color: var(--ink-soft); font-weight: 600;
+      padding: 3px 8px 3px 3px;
+    }
+    .pc-chip i {
+      width: 14px; height: 14px; border-radius: 7px;
+      background: #cbd5e1;
+      font-style: normal; font-size: 8px; font-weight: 800; color: #475569;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .pc-chip.me { background: var(--green-light); color: var(--green-deep); }
+    .pc-chip.me i { background: var(--green); color: #fff; }
+    .pc-chip.joins { opacity: 0; animation: chip-in 9s ease-in-out infinite; }
+    @keyframes chip-in {
+      0%, 30% { opacity: 0; transform: scale(.6); }
+      36%, 100% { opacity: 1; transform: scale(1); }
+    }
 
-    /* ── Features ── */
-    .features {
-      padding: 100px 24px;
-      max-width: 1100px; margin: 0 auto;
+    /* notification toast inside phone */
+    .phone-toast {
+      position: absolute; top: 42px; left: 10px; right: 10px;
+      background: rgba(11,18,32,.92);
+      backdrop-filter: blur(8px);
+      border-radius: 14px;
+      padding: 10px 12px;
+      display: flex; align-items: center; gap: 9px;
+      z-index: 6;
+      transform: translateY(-90px);
+      animation: toast-demo 9s cubic-bezier(.2,.7,.3,1) infinite;
+      box-shadow: 0 12px 28px rgba(11,18,32,.4);
     }
+    @keyframes toast-demo {
+      0%, 30% { transform: translateY(-90px); }
+      36%, 62% { transform: translateY(0); }
+      68%, 100% { transform: translateY(-90px); }
+    }
+    .toast-icon {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--green), var(--green-deep));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+    }
+    .toast-title { font-size: 10.5px; font-weight: 700; color: #fff; }
+    .toast-sub { font-size: 9.5px; color: rgba(255,255,255,.65); }
+
+    /* ════════ Marquee ════════ */
+    .marquee-section {
+      background: linear-gradient(135deg, var(--green-deep) 0%, #0f3d22 100%);
+      padding: 46px 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .marquee-section::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    .marquee-label {
+      text-align: center;
+      font-size: 12px; font-weight: 700; color: rgba(255,255,255,.45);
+      letter-spacing: 2px; text-transform: uppercase;
+      margin-bottom: 26px;
+      position: relative;
+    }
+    .marquee {
+      display: flex;
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+      mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+    }
+    .marquee-track {
+      display: flex; gap: 14px;
+      padding-right: 14px;
+      flex-shrink: 0;
+      animation: marquee 28s linear infinite;
+    }
+    .marquee:hover .marquee-track { animation-play-state: paused; }
+    @keyframes marquee { to { transform: translateX(-100%); } }
+    .sport-pill {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 999px;
+      padding: 11px 22px;
+      font-size: 15px; font-weight: 600; color: #fff;
+      white-space: nowrap;
+      transition: background .2s, transform .2s;
+    }
+    .sport-pill:hover { background: rgba(255,255,255,.16); transform: scale(1.05); }
+    .sport-pill span:first-child { font-size: 20px; }
+
+    /* ════════ Sections ════════ */
+    .section { padding: 110px 24px; max-width: 1140px; margin: 0 auto; }
+
     .section-label {
       text-align: center;
-      font-size: 12px; font-weight: 700; color: var(--green);
-      letter-spacing: 1.5px; text-transform: uppercase;
-      margin-bottom: 14px;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 2.5px; text-transform: uppercase;
+      background: linear-gradient(90deg, var(--green), var(--lime));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 16px;
     }
     .section-title {
       text-align: center;
-      font-size: clamp(30px, 4vw, 44px);
-      font-weight: 900; color: var(--ink);
-      letter-spacing: -1.5px;
-      margin-bottom: 60px;
-      line-height: 1.15;
+      font-size: clamp(34px, 5vw, 54px);
+      font-weight: 700; color: var(--ink);
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 70px;
     }
 
+    /* scroll reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(46px);
+      transition: opacity .8s cubic-bezier(.2,.7,.3,1), transform .8s cubic-bezier(.2,.7,.3,1);
+    }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+    .reveal-d1 { transition-delay: .08s; }
+    .reveal-d2 { transition-delay: .16s; }
+    .reveal-d3 { transition-delay: .24s; }
+    .reveal-d4 { transition-delay: .32s; }
+    .reveal-d5 { transition-delay: .4s; }
+
+    /* ════════ Feature cards ════════ */
     .features-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 22px;
     }
-
     .feature-card {
-      background: var(--bg);
-      border: 1px solid var(--separator);
-      border-radius: 20px;
-      padding: 28px;
-      transition: transform .2s, box-shadow .2s;
-    }
-    .feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.07); }
-    .feature-icon {
-      font-size: 32px; margin-bottom: 16px;
-      display: block;
-    }
-    .feature-title {
-      font-size: 17px; font-weight: 800; color: var(--ink);
-      margin-bottom: 8px; letter-spacing: -0.3px;
-    }
-    .feature-desc {
-      font-size: 14px; color: var(--muted); line-height: 1.6;
-    }
-
-    /* ── Sports strip ── */
-    .sports-strip {
-      background: var(--green-deep);
-      padding: 40px 24px;
-      text-align: center;
+      position: relative;
+      background: rgba(255,255,255,.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(226,232,240,.9);
+      border-radius: 24px;
+      padding: 32px;
       overflow: hidden;
+      transition: transform .35s cubic-bezier(.2,.7,.3,1), box-shadow .35s;
     }
-    .sports-strip p {
-      font-size: 13px; font-weight: 700; color: rgba(255,255,255,.5);
-      letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 20px;
+    .feature-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: 24px;
+      padding: 1.5px;
+      background: linear-gradient(135deg, rgba(34,197,94,.6), rgba(163,230,53,.4), transparent 60%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity .35s;
     }
-    .sports-list {
-      display: flex; flex-wrap: wrap;
-      justify-content: center; gap: 12px;
+    .feature-card::after {
+      content: '';
+      position: absolute;
+      width: 220px; height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(34,197,94,.14), transparent 70%);
+      top: -70px; right: -70px;
+      opacity: 0;
+      transition: opacity .35s;
     }
-    .sport-pill {
-      display: flex; align-items: center; gap: 8px;
-      background: rgba(255,255,255,.1);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 999px;
-      padding: 8px 16px;
-      font-size: 14px; font-weight: 600; color: #fff;
+    .feature-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 28px 56px rgba(11,18,32,.12);
     }
+    .feature-card:hover::before, .feature-card:hover::after { opacity: 1; }
+    .feature-icon {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--green-light), #f0fdf4);
+      border: 1px solid rgba(34,197,94,.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      margin-bottom: 20px;
+      transition: transform .35s cubic-bezier(.2,.7,.3,1);
+    }
+    .feature-card:hover .feature-icon { transform: scale(1.12) rotate(-6deg); }
+    .feature-title {
+      font-family: var(--font-display);
+      font-size: 19px; font-weight: 700; color: var(--ink);
+      margin-bottom: 9px; letter-spacing: -0.3px;
+    }
+    .feature-desc { font-size: 14.5px; color: var(--muted); line-height: 1.65; }
 
-    /* ── How it works ── */
-    .how {
-      padding: 100px 24px;
-      max-width: 800px; margin: 0 auto;
-      text-align: center;
-    }
-    .steps {
-      display: flex; flex-direction: column; gap: 0;
-      margin-top: 48px; text-align: left;
-    }
+    /* ════════ How it works ════════ */
+    .how-wrap { max-width: 760px; margin: 0 auto; }
+    .steps { display: flex; flex-direction: column; }
     .step {
-      display: flex; gap: 24px;
-      padding-bottom: 36px;
+      display: flex; gap: 26px;
+      padding-bottom: 44px;
       position: relative;
     }
     .step:not(:last-child)::before {
       content: '';
       position: absolute;
-      left: 19px; top: 40px; bottom: 0;
-      width: 2px; background: var(--separator);
+      left: 23px; top: 52px; bottom: 4px;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--green-vivid), rgba(34,197,94,.15));
+      transform: scaleY(0);
+      transform-origin: top;
+      transition: transform 1s cubic-bezier(.2,.7,.3,1) .3s;
     }
+    .step.in::before { transform: scaleY(1); }
     .step-num {
       flex-shrink: 0;
-      width: 40px; height: 40px; border-radius: 20px;
-      background: var(--green); color: #fff;
+      width: 48px; height: 48px; border-radius: 16px;
+      background: linear-gradient(135deg, var(--green), #15803d);
+      color: #fff;
       display: flex; align-items: center; justify-content: center;
-      font-size: 16px; font-weight: 800;
+      font-family: var(--font-display);
+      font-size: 19px; font-weight: 700;
       position: relative; z-index: 1;
+      box-shadow: 0 10px 24px rgba(22,163,74,.35);
     }
-    .step-body {}
-    .step-title { font-size: 18px; font-weight: 800; color: var(--ink); margin-bottom: 6px; letter-spacing: -0.3px; }
-    .step-desc { font-size: 15px; color: var(--muted); line-height: 1.6; }
+    .step-title {
+      font-family: var(--font-display);
+      font-size: 21px; font-weight: 700; color: var(--ink);
+      margin-bottom: 7px; letter-spacing: -0.3px;
+    }
+    .step-desc { font-size: 15.5px; color: var(--muted); line-height: 1.65; }
+    .step-desc a { color: var(--green); font-weight: 700; text-decoration: none; }
+    .step-desc a:hover { text-decoration: underline; }
 
-    /* ── CTA ── */
+    /* ════════ CTA ════════ */
     .cta-section {
-      background: linear-gradient(135deg, var(--green-deep) 0%, #166534 100%);
-      padding: 100px 24px;
+      position: relative;
+      margin: 0 24px 24px;
+      border-radius: 36px;
+      background: linear-gradient(135deg, #14532d 0%, #166534 45%, #15803d 100%);
+      padding: 110px 24px;
       text-align: center;
+      overflow: hidden;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: radial-gradient(rgba(255,255,255,.07) 1px, transparent 1px);
+      background-size: 22px 22px;
+    }
+    .cta-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(70px);
+      pointer-events: none;
+    }
+    .cta-orb-1 {
+      width: 400px; height: 400px;
+      background: rgba(163,230,53,.25);
+      top: -150px; left: -100px;
+      animation: drift1 20s ease-in-out infinite alternate;
+    }
+    .cta-orb-2 {
+      width: 360px; height: 360px;
+      background: rgba(45,212,191,.2);
+      bottom: -130px; right: -80px;
+      animation: drift2 24s ease-in-out infinite alternate;
     }
     .cta-section h2 {
-      font-size: clamp(32px, 5vw, 52px);
-      font-weight: 900; color: #fff;
-      letter-spacing: -2px; line-height: 1.1;
-      margin-bottom: 16px;
+      position: relative;
+      font-size: clamp(36px, 5.5vw, 60px);
+      font-weight: 700; color: #fff;
+      letter-spacing: -0.03em; line-height: 1.08;
+      margin-bottom: 18px;
+    }
+    .cta-section h2 em {
+      font-style: normal;
+      background: linear-gradient(90deg, var(--lime), #86efac);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
     .cta-section p {
-      font-size: 18px; color: rgba(255,255,255,.65);
-      margin-bottom: 44px;
+      position: relative;
+      font-size: 18px; color: rgba(255,255,255,.7);
+      margin-bottom: 46px;
     }
-    .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .cta-buttons {
+      position: relative;
+      display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+    }
     .cta-organiser {
+      position: relative;
       display: inline-block;
-      margin-top: 28px;
+      margin-top: 30px;
       font-size: 14px; font-weight: 600;
-      color: rgba(255,255,255,.85);
+      color: rgba(255,255,255,.9);
       text-decoration: none;
-      border: 1.5px solid rgba(255,255,255,.3);
+      border: 1.5px solid rgba(255,255,255,.35);
       border-radius: 999px;
-      padding: 10px 22px;
-      transition: border-color .15s;
+      padding: 12px 26px;
+      transition: border-color .2s, background .2s, transform .2s;
     }
-    .cta-organiser:hover { border-color: #fff; }
-    .btn-white {
-      display: flex; align-items: center; gap: 10px;
-      background: #fff; color: var(--ink);
-      padding: 14px 24px; border-radius: 14px;
-      text-decoration: none; font-weight: 800;
-      transition: transform .15s, box-shadow .15s;
-      box-shadow: 0 4px 14px rgba(0,0,0,.2);
+    .cta-organiser:hover {
+      border-color: #fff;
+      background: rgba(255,255,255,.1);
+      transform: translateY(-2px);
     }
-    .btn-white:hover { transform: translateY(-2px); }
-    .btn-outline-white {
-      display: flex; align-items: center; gap: 10px;
-      background: transparent; color: #fff;
-      padding: 14px 24px; border-radius: 14px;
-      text-decoration: none; font-weight: 700;
-      border: 1.5px solid rgba(255,255,255,.3);
-      transition: border-color .15s;
-    }
-    .btn-outline-white:hover { border-color: rgba(255,255,255,.7); }
 
-    /* ── Footer ── */
+    /* ════════ Footer ════════ */
     footer {
       background: var(--ink);
-      padding: 48px 24px;
+      padding: 56px 24px;
       text-align: center;
     }
     .footer-logo {
-      font-size: 22px; font-weight: 800; color: #fff;
+      font-family: var(--font-display);
+      font-size: 24px; font-weight: 700; color: #fff;
       letter-spacing: -0.5px; margin-bottom: 6px;
+      display: inline-flex; align-items: center; gap: 8px;
     }
-    .footer-logo span { color: #4ade80; }
-    .footer-by { font-size: 13px; color: rgba(255,255,255,.4); margin-bottom: 24px; }
+    .footer-logo .dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--green-vivid);
+      box-shadow: 0 0 10px rgba(34,197,94,.8);
+    }
+    .footer-by { font-size: 13px; color: rgba(255,255,255,.4); margin-bottom: 26px; }
     .footer-links {
-      display: flex; gap: 20px; justify-content: center;
-      flex-wrap: wrap; margin-bottom: 28px;
+      display: flex; gap: 24px; justify-content: center;
+      flex-wrap: wrap; margin-bottom: 30px;
     }
-    .footer-links a { font-size: 13px; color: rgba(255,255,255,.45); text-decoration: none; }
-    .footer-links a:hover { color: rgba(255,255,255,.8); }
+    .footer-links a {
+      font-size: 13px; color: rgba(255,255,255,.5);
+      text-decoration: none;
+      transition: color .15s;
+    }
+    .footer-links a:hover { color: #fff; }
     .footer-copy { font-size: 12px; color: rgba(255,255,255,.25); }
 
-    /* ── Responsive ── */
+    /* ════════ Motion preferences ════════ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .001s !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001s !important;
+      }
+      .reveal { opacity: 1; transform: none; }
+      .hero h1 .word { transform: none; }
+    }
+
     @media (max-width: 640px) {
-      .phone { width: 240px; }
-      .btn-store { padding: 12px 18px; }
+      .phone { width: 260px; }
+      .section { padding: 80px 20px; }
+      .cta-section { margin: 0 12px 12px; padding: 80px 20px; }
     }
   </style>
 </head>
 <body>
 
+  <!-- Aurora background -->
+  <div class="aurora">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
   <!-- Nav -->
-  <nav>
-    <a href="/" class="nav-logo">Pitch<span>.</span></a>
+  <nav id="nav">
+    <a href="/" class="nav-logo"><span class="dot"></span>Pitch</a>
     <div class="nav-right">
       <a href="/admin/" class="nav-link">For organisers</a>
       <a href="#download" class="nav-cta">Get the app</a>
@@ -402,122 +769,174 @@
   </nav>
 
   <!-- Hero -->
-  <section class="hero">
-    <div class="hero-badge">📱 Now available on iOS &amp; Android</div>
-    <h1>Organise your<br><em>game.</em></h1>
+  <section class="hero" id="hero">
+    <div class="floaters">
+      <span class="floater f1">⚽</span>
+      <span class="floater f2">🏀</span>
+      <span class="floater f3">🎾</span>
+      <span class="floater f4">🏏</span>
+      <span class="floater f5">🏐</span>
+      <span class="floater f6">🏉</span>
+    </div>
+
+    <div class="hero-badge"><span class="live"></span>Now available on iOS &amp; Android</div>
+
+    <h1>
+      <span class="line"><span class="word">Organise your</span></span>
+      <span class="line"><span class="word"><em>game.</em></span></span>
+    </h1>
+
     <p class="hero-sub">
       Create a game, invite your squad, and let Pitch handle sign-ups,
       the waitlist, and team splits — for any sport.
     </p>
+
     <div class="hero-buttons" id="download">
       <a href="#" class="btn-store">
         <img src="https://developer.apple.com/app-store/marketing/guidelines/images/badge-download-on-the-app-store.svg" alt="Download on the App Store" />
       </a>
       <a href="#" class="btn-store">
-        <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" style="height:54px;" />
+        <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" style="height:56px;" />
       </a>
     </div>
     <p class="hero-note">Free to download · No ads · No subscription</p>
     <a href="/admin/" class="hero-organiser">Want to run your own games? <strong>Become an organiser →</strong></a>
 
-    <!-- Phone mockup -->
-    <div class="phone-wrap">
-      <div class="phone">
+    <!-- Phone -->
+    <div class="phone-stage">
+      <div class="phone-glow"></div>
+      <div class="phone" id="phone">
         <div class="phone-screen">
+          <div class="phone-notch"></div>
+
+          <!-- waitlist promotion toast (looping demo) -->
+          <div class="phone-toast">
+            <div class="toast-icon">🎉</div>
+            <div>
+              <div class="toast-title">You're in!</div>
+              <div class="toast-sub">A spot opened in Saturday Footy</div>
+            </div>
+          </div>
+
           <div class="phone-header">
             <span class="phone-header-title">Pitch</span>
             <div class="phone-avatar">M</div>
           </div>
-          <div style="padding: 4px 0; overflow: hidden;">
-            <div class="phone-card">
-              <div class="phone-card-top">
-                <div>
-                  <div style="display:flex;align-items:center;gap:5px">
-                    <span class="phone-card-sport">⚽</span>
-                    <span class="phone-card-title">Saturday Footy</span>
-                  </div>
-                  <div class="phone-card-meta">📍 Victoria Park · Sat 9 Jun, 9am</div>
+
+          <div class="phone-card">
+            <div class="pc-top">
+              <div>
+                <div class="pc-title-row">
+                  <span class="pc-sport">⚽</span>
+                  <span class="pc-title">Saturday Footy</span>
                 </div>
-                <span class="phone-badge">Open</span>
+                <div class="pc-meta">📍 Victoria Park · Sat 9am</div>
               </div>
-              <div class="phone-bar-wrap">
-                <div class="phone-bar-track">
-                  <div class="phone-bar-fill" style="width:71%"></div>
-                </div>
-                <span class="phone-bar-label">10/14</span>
-              </div>
-              <div class="phone-join-btn">Join Game</div>
+              <span class="pc-badge">Open</span>
             </div>
-            <div class="phone-card phone-card2">
-              <div class="phone-card-top">
-                <div>
-                  <div style="display:flex;align-items:center;gap:5px">
-                    <span class="phone-card-sport">🏀</span>
-                    <span class="phone-card-title">Lunch Hoops</span>
-                  </div>
-                  <div class="phone-card-meta">📍 CBD Courts · Fri 14 Jun, 12pm</div>
-                </div>
-                <span class="phone-badge">Open</span>
-              </div>
-              <div class="phone-bar-wrap">
-                <div class="phone-bar-track">
-                  <div class="phone-bar-fill" style="width:40%"></div>
-                </div>
-                <span class="phone-bar-label">4/10</span>
-              </div>
+            <div class="pc-bar-row">
+              <div class="pc-bar-track"><div class="pc-bar-fill" style="width:86%"></div></div>
+              <span class="pc-bar-label">12/14</span>
+            </div>
+            <div class="pc-join">Join Game</div>
+            <div class="pc-chips">
+              <div class="pc-chip me"><i>M</i>Maddy</div>
+              <div class="pc-chip"><i>S</i>Sam</div>
+              <div class="pc-chip"><i>J</i>Jess</div>
+              <div class="pc-chip"><i>T</i>Tom</div>
             </div>
           </div>
+
+          <div class="phone-card">
+            <div class="pc-top">
+              <div>
+                <div class="pc-title-row">
+                  <span class="pc-sport">🏀</span>
+                  <span class="pc-title">Lunch Hoops</span>
+                </div>
+                <div class="pc-meta">📍 CBD Courts · Fri 12pm</div>
+              </div>
+              <span class="pc-badge">Open</span>
+            </div>
+            <div class="pc-bar-row">
+              <div class="pc-bar-track"><div class="pc-bar-fill demo"></div></div>
+              <span class="pc-bar-label">5/10</span>
+            </div>
+            <div class="pc-chips">
+              <div class="pc-chip"><i>A</i>Alex</div>
+              <div class="pc-chip"><i>K</i>Kim</div>
+              <div class="pc-chip joins"><i>R</i>Ravi</div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Sports strip -->
-  <div class="sports-strip">
-    <p>Works for any sport</p>
-    <div class="sports-list">
-      <div class="sport-pill"><span>⚽</span> Football</div>
-      <div class="sport-pill"><span>🏀</span> Basketball</div>
-      <div class="sport-pill"><span>🏏</span> Cricket</div>
-      <div class="sport-pill"><span>🎾</span> Tennis</div>
-      <div class="sport-pill"><span>🏉</span> Rugby</div>
-      <div class="sport-pill"><span>🏐</span> Volleyball</div>
-      <div class="sport-pill"><span>🏟</span> + more</div>
+  <!-- Sports marquee -->
+  <div class="marquee-section">
+    <p class="marquee-label">Works for any sport</p>
+    <div class="marquee">
+      <div class="marquee-track">
+        <div class="sport-pill"><span>⚽</span><span>Football</span></div>
+        <div class="sport-pill"><span>🏀</span><span>Basketball</span></div>
+        <div class="sport-pill"><span>🏏</span><span>Cricket</span></div>
+        <div class="sport-pill"><span>🎾</span><span>Tennis</span></div>
+        <div class="sport-pill"><span>🏉</span><span>Rugby</span></div>
+        <div class="sport-pill"><span>🏐</span><span>Volleyball</span></div>
+        <div class="sport-pill"><span>🏸</span><span>Badminton</span></div>
+        <div class="sport-pill"><span>⚾</span><span>Baseball</span></div>
+        <div class="sport-pill"><span>🥏</span><span>Ultimate</span></div>
+        <div class="sport-pill"><span>🏑</span><span>Hockey</span></div>
+      </div>
+      <div class="marquee-track" aria-hidden="true">
+        <div class="sport-pill"><span>⚽</span><span>Football</span></div>
+        <div class="sport-pill"><span>🏀</span><span>Basketball</span></div>
+        <div class="sport-pill"><span>🏏</span><span>Cricket</span></div>
+        <div class="sport-pill"><span>🎾</span><span>Tennis</span></div>
+        <div class="sport-pill"><span>🏉</span><span>Rugby</span></div>
+        <div class="sport-pill"><span>🏐</span><span>Volleyball</span></div>
+        <div class="sport-pill"><span>🏸</span><span>Badminton</span></div>
+        <div class="sport-pill"><span>⚾</span><span>Baseball</span></div>
+        <div class="sport-pill"><span>🥏</span><span>Ultimate</span></div>
+        <div class="sport-pill"><span>🏑</span><span>Hockey</span></div>
+      </div>
     </div>
   </div>
 
   <!-- Features -->
-  <section class="features">
-    <p class="section-label">Features</p>
-    <h2 class="section-title">Everything your game needs</h2>
+  <section class="section">
+    <p class="section-label reveal">Features</p>
+    <h2 class="section-title reveal">Everything your game needs</h2>
     <div class="features-grid">
-      <div class="feature-card">
-        <span class="feature-icon">📋</span>
+      <div class="feature-card reveal">
+        <div class="feature-icon">📋</div>
         <div class="feature-title">Game feed</div>
         <p class="feature-desc">See all upcoming games at a glance — capacity, location, date, and who's already in.</p>
       </div>
-      <div class="feature-card">
-        <span class="feature-icon">⏳</span>
+      <div class="feature-card reveal reveal-d1">
+        <div class="feature-icon">⏳</div>
         <div class="feature-title">Smart waitlist</div>
         <p class="feature-desc">Game full? Join the waitlist. When someone drops out, you're automatically promoted — no chasing the group chat.</p>
       </div>
-      <div class="feature-card">
-        <span class="feature-icon">🔔</span>
+      <div class="feature-card reveal reveal-d2">
+        <div class="feature-icon">🔔</div>
         <div class="feature-title">Push notifications</div>
         <p class="feature-desc">Get notified when you're added to a game, confirmed off the waitlist, or a game is cancelled.</p>
       </div>
-      <div class="feature-card">
-        <span class="feature-icon">👥</span>
+      <div class="feature-card reveal">
+        <div class="feature-icon">👥</div>
         <div class="feature-title">Team generator</div>
         <p class="feature-desc">Balanced random team splits generated in one tap. Teams are saved so everyone can check on match day.</p>
       </div>
-      <div class="feature-card">
-        <span class="feature-icon">🔑</span>
-        <div class="feature-title">Invite-only admins</div>
-        <p class="feature-desc">Admins are added via one-time invite codes. Players just sign up — no password, no fuss.</p>
+      <div class="feature-card reveal reveal-d1">
+        <div class="feature-icon">🌐</div>
+        <div class="feature-title">Organisers on the web</div>
+        <p class="feature-desc">Organiser accounts are created on the website — players just download the app and go. Clean and simple.</p>
       </div>
-      <div class="feature-card">
-        <span class="feature-icon">⚡</span>
+      <div class="feature-card reveal reveal-d2">
+        <div class="feature-icon">⚡</div>
         <div class="feature-title">Real-time updates</div>
         <p class="feature-desc">Player lists update live as people join or leave. Everyone always sees the same thing.</p>
       </div>
@@ -525,29 +944,31 @@
   </section>
 
   <!-- How it works -->
-  <section class="how">
-    <p class="section-label">How it works</p>
-    <h2 class="section-title">Up and running in minutes</h2>
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-body">
-          <div class="step-title">Organisers sign up on the web</div>
-          <p class="step-desc">Create your free organiser account at <a href="/admin/" style="color:var(--green);font-weight:700;">pitchapp.net/admin</a>, then sign in to the app with the same details — the organiser tools appear automatically.</p>
+  <section class="section">
+    <p class="section-label reveal">How it works</p>
+    <h2 class="section-title reveal">Up and running in minutes</h2>
+    <div class="how-wrap">
+      <div class="steps">
+        <div class="step reveal">
+          <div class="step-num">1</div>
+          <div>
+            <div class="step-title">Organisers sign up on the web</div>
+            <p class="step-desc">Create your free organiser account at <a href="/admin/">pitchapp.net/admin</a>, then sign in to the app with the same details — the organiser tools appear automatically.</p>
+          </div>
         </div>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-body">
-          <div class="step-title">Create a game, players join in the app</div>
-          <p class="step-desc">Pick the sport, date, location and player cap. Players just download the app, sign up in seconds, and join with one tap — or the waitlist if it's full.</p>
+        <div class="step reveal reveal-d1">
+          <div class="step-num">2</div>
+          <div>
+            <div class="step-title">Create a game, players join in the app</div>
+            <p class="step-desc">Pick the sport, date, location and player cap. Players just download the app, sign up in seconds, and join with one tap — or the waitlist if it's full.</p>
+          </div>
         </div>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-body">
-          <div class="step-title">Pitch handles the rest</div>
-          <p class="step-desc">Waitlist promotions and notifications happen automatically. Generate balanced teams on match day. No spreadsheets, no group-chat chaos.</p>
+        <div class="step reveal reveal-d2">
+          <div class="step-num">3</div>
+          <div>
+            <div class="step-title">Pitch handles the rest</div>
+            <p class="step-desc">Waitlist promotions and notifications happen automatically. Generate balanced teams on match day. No spreadsheets, no group-chat chaos.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -555,9 +976,11 @@
 
   <!-- CTA -->
   <section class="cta-section">
-    <h2>Ready to run<br>a better game?</h2>
-    <p>Free to download. No subscription required.</p>
-    <div class="cta-buttons">
+    <div class="cta-orb cta-orb-1"></div>
+    <div class="cta-orb cta-orb-2"></div>
+    <h2 class="reveal">Ready to run<br>a <em>better game?</em></h2>
+    <p class="reveal reveal-d1">Free to download. No subscription required.</p>
+    <div class="cta-buttons reveal reveal-d2">
       <a href="#" class="btn-store">
         <img src="https://developer.apple.com/app-store/marketing/guidelines/images/badge-download-on-the-app-store.svg" alt="Download on the App Store" style="height:54px;filter:brightness(0) invert(1);" />
       </a>
@@ -565,12 +988,12 @@
         <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" style="height:54px;" />
       </a>
     </div>
-    <a href="/admin/" class="cta-organiser">Organising games? Create your free organiser account →</a>
+    <a href="/admin/" class="cta-organiser reveal reveal-d3">Organising games? Create your free organiser account →</a>
   </section>
 
   <!-- Footer -->
   <footer>
-    <div class="footer-logo">Pitch<span>.</span></div>
+    <div class="footer-logo"><span class="dot"></span>Pitch</div>
     <div class="footer-by">A product of Nila · pitchapp.net</div>
     <div class="footer-links">
       <a href="/admin/">For organisers</a>
@@ -580,6 +1003,40 @@
     </div>
     <div class="footer-copy">© 2026 Nila. All rights reserved.</div>
   </footer>
+
+  <script>
+    // Scroll reveal
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.reveal, .step').forEach((el) => io.observe(el));
+
+    // Nav shadow on scroll
+    const nav = document.getElementById('nav');
+    addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', scrollY > 8);
+    }, { passive: true });
+
+    // 3D phone tilt (desktop pointers only)
+    if (matchMedia('(pointer: fine)').matches) {
+      const phone = document.getElementById('phone');
+      const stage = phone.closest('.phone-stage');
+      stage.addEventListener('mousemove', (e) => {
+        const r = stage.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - 0.5;
+        const y = (e.clientY - r.top) / r.height - 0.5;
+        phone.style.transform = `rotateY(${x * 16}deg) rotateX(${ -y * 12}deg)`;
+      });
+      stage.addEventListener('mouseleave', () => {
+        phone.style.transform = 'rotateY(0deg) rotateX(0deg)';
+      });
+    }
+  </script>
 
 </body>
 </html>
