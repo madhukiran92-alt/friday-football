@@ -31,8 +31,8 @@ const s = StyleSheet.create({
   },
   icon: { fontSize: 52, marginBottom: 18 },
   title: {
-    fontSize: 22, fontWeight: '800', color: C.ink,
-    marginBottom: 8, textAlign: 'center',
+    fontSize: 22, color: C.ink, fontFamily: C.fontDisplay,
+    marginBottom: 8, textAlign: 'center', letterSpacing: -0.4,
   },
   sub: {
     fontSize: 15, color: C.muted, textAlign: 'center',
@@ -41,7 +41,7 @@ const s = StyleSheet.create({
   btn: {
     backgroundColor: C.green, borderRadius: C.rFull,
     paddingHorizontal: 36, paddingVertical: 13,
-    ...C.shadow,
+    ...C.glow,
   },
   btnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 });

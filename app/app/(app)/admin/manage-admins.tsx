@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     padding: 20, paddingTop: 60,
-    backgroundColor: '#fff',
+    backgroundColor: C.surface,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.separator,
   },
   back: { fontSize: 16, color: C.green, fontWeight: '600' },
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   // Admin rows
   adminRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#fff', borderRadius: C.rMd,
+    backgroundColor: C.surface, borderRadius: C.rMd,
     paddingVertical: 10, paddingHorizontal: 12, marginBottom: 4,
     ...C.shadow,
   },

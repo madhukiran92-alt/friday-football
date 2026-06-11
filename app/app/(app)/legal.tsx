@@ -17,7 +17,7 @@ export default function LegalScreen() {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" />
 
       <SafeAreaView style={s.headerSafe}>
         <View style={s.header}>
@@ -210,7 +210,7 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
 
   headerSafe: {
-    backgroundColor: '#fff',
+    backgroundColor: C.surface,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: C.separator,
   },

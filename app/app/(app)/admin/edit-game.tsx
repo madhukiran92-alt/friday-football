@@ -8,6 +8,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { supabase } from '../../../src/lib/supabase';
 import { useAuth } from '../../../src/context/AuthContext';
 import { Game } from '../../../src/lib/types';
+import { C } from '../../../src/lib/theme';
 
 export default function EditGameScreen() {
   const { gameId } = useLocalSearchParams<{ gameId: string }>();
@@ -65,7 +66,7 @@ export default function EditGameScreen() {
   const formatDate = (d: Date) => d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
   const formatTime = (d: Date) => d.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
 
-  if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color="#16a34a" />;
+  if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color={C.greenSoft} />;
   if (!game || !isAdmin) return null;
 
   return (
@@ -80,10 +81,10 @@ export default function EditGameScreen() {
 
         <View style={styles.form}>
           <Text style={styles.label}>Title *</Text>
-          <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="e.g. Friday Kickabout" />
+          <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="e.g. Friday Kickabout" placeholderTextColor={C.subtle} />
 
           <Text style={styles.label}>Location</Text>
-          <TextInput style={styles.input} value={location} onChangeText={setLocation} placeholder="e.g. Victoria Park" />
+          <TextInput style={styles.input} value={location} onChangeText={setLocation} placeholder="e.g. Victoria Park" placeholderTextColor={C.subtle} />
 
           <Text style={styles.label}>Date *</Text>
           <TouchableOpacity style={styles.pickerBtn} onPress={() => { setShowDatePicker(v => !v); setShowTimePicker(false); }}>
@@ -158,19 +159,19 @@ export default function EditGameScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  header: { flexDirection: 'row', alignItems: 'center', padding: 20, paddingTop: 60, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#e5e7eb', gap: 12 },
-  back: { fontSize: 16, color: '#16a34a' },
-  title: { fontSize: 20, fontWeight: '800', color: '#111827' },
+  container: { flex: 1, backgroundColor: C.bg },
+  header: { flexDirection: 'row', alignItems: 'center', padding: 20, paddingTop: 60, backgroundColor: C.surface, borderBottomWidth: 1, borderBottomColor: C.separator, gap: 12 },
+  back: { fontSize: 16, color: C.greenSoft },
+  title: { fontSize: 20, fontWeight: '800', color: C.ink },
   form: { padding: 16 },
-  label: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 6, marginTop: 12 },
-  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d1d5db', borderRadius: 10, padding: 14, fontSize: 15 },
-  pickerBtn: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d1d5db', borderRadius: 10, padding: 14 },
-  pickerBtnText: { fontSize: 15, color: '#111827' },
-  picker: { width: '100%', height: 200, backgroundColor: '#fff', marginTop: 4 },
+  label: { fontSize: 13, fontWeight: '600', color: C.inkSoft, marginBottom: 6, marginTop: 12 },
+  input: { backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 10, padding: 14, fontSize: 15, color: C.ink },
+  pickerBtn: { backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 10, padding: 14 },
+  pickerBtnText: { fontSize: 15, color: C.ink },
+  picker: { width: '100%', height: 200, backgroundColor: C.surface, marginTop: 4 },
   doneBtn: { alignItems: 'flex-end', paddingVertical: 8, paddingHorizontal: 4 },
-  doneBtnText: { color: '#16a34a', fontWeight: '700', fontSize: 16 },
-  button: { backgroundColor: '#16a34a', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 24 },
+  doneBtnText: { color: C.greenSoft, fontWeight: '700', fontSize: 16 },
+  button: { backgroundColor: C.green, borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 24 },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });

@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   Alert, KeyboardAvoidingView, Platform, StatusBar, SafeAreaView,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, Href } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';
 import { useAuth } from '../../src/context/AuthContext';
@@ -38,7 +39,11 @@ export default function NameScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" />
+      <LinearGradient
+        colors={['rgba(74,222,128,0.14)', 'rgba(74,222,128,0.03)', 'transparent']}
+        style={styles.floodlight}
+      />
       <KeyboardAvoidingView style={styles.kav} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <SafeAreaView style={styles.safe}>
           <View style={styles.logoSection}>
@@ -66,12 +71,14 @@ export default function NameScreen() {
             />
 
             <TouchableOpacity
-              style={[styles.btn, disabled && styles.btnDisabled]}
+              style={[styles.btnWrap, disabled && styles.btnDisabled]}
               onPress={saveName}
               disabled={disabled}
-              activeOpacity={0.8}
+              activeOpacity={0.85}
             >
-              <Text style={styles.btnText}>{loading ? 'Saving…' : "Let's go →"}</Text>
+              <LinearGradient colors={C.gradGreen} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.btn}>
+                <Text style={styles.btnText}>{loading ? 'Saving…' : "Let's go →"}</Text>
+              </LinearGradient>
             </TouchableOpacity>
 
             <Text style={styles.consent}>
@@ -98,29 +105,31 @@ export default function NameScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.surface },
+  root: { flex: 1, backgroundColor: C.bg },
+  floodlight: { position: 'absolute', top: 0, left: 0, right: 0, height: 380 },
   kav: { flex: 1 },
   safe: { flex: 1, paddingHorizontal: 28 },
   logoSection: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   logoCircle: {
-    width: 88, height: 88, borderRadius: 26, backgroundColor: C.greenUltra,
-    alignItems: 'center', justifyContent: 'center', ...C.shadowMd,
+    width: 92, height: 92, borderRadius: 28,
+    backgroundColor: C.greenUltra,
+    borderWidth: 1, borderColor: C.greenLight,
+    alignItems: 'center', justifyContent: 'center',
+    ...C.glowSoft,
   },
   logoEmoji: { fontSize: 42 },
-  form: { paddingBottom: 20 },
-  formTitle: { fontSize: 26, fontWeight: '800', color: C.inkSoft, letterSpacing: -0.4, marginBottom: 6 },
+  form: { paddingBottom: 24 },
+  formTitle: { fontSize: 27, color: C.ink, letterSpacing: -0.5, marginBottom: 6, fontFamily: C.fontDisplay },
   formSub: { fontSize: 15, color: C.muted, marginBottom: 24, lineHeight: 22 },
   input: {
-    backgroundColor: C.bg, borderWidth: 1.5, borderColor: 'transparent',
+    backgroundColor: C.glass, borderWidth: 1.5, borderColor: C.border,
     borderRadius: C.rMd, paddingHorizontal: 16, paddingVertical: 15,
-    fontSize: 17, color: C.inkSoft, marginBottom: 14,
+    fontSize: 17, color: C.ink, marginBottom: 14,
   },
-  inputFocused: { borderColor: C.green, backgroundColor: C.surface },
+  inputFocused: { borderColor: C.greenSoft, backgroundColor: 'rgba(255,255,255,0.07)' },
 
-  btn: {
-    backgroundColor: C.green, borderRadius: C.rMd, paddingVertical: 16,
-    alignItems: 'center', ...C.shadowMd,
-  },
+  btnWrap: { borderRadius: C.rMd, ...C.glow },
+  btn: { borderRadius: C.rMd, paddingVertical: 16, alignItems: 'center' },
   btnDisabled: { opacity: 0.4 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 

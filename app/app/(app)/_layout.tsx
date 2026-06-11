@@ -1,13 +1,14 @@
 import { Tabs, Redirect } from 'expo-router';
 import { useAuth } from '../../src/context/AuthContext';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { C } from '../../src/lib/theme';
 import { usePushNotifications } from '../../src/hooks/usePushNotifications';
 
-function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
+function TabIcon({ emoji, label, focused }: { emoji: string; label: string; focused: boolean }) {
   return (
     <View style={[s.iconWrap, focused && s.iconWrapActive]}>
-      <Text style={s.iconEmoji}>{emoji}</Text>
+      <Text style={[s.iconEmoji, !focused && s.iconEmojiDim]}>{emoji}</Text>
+      <Text style={[s.iconLabel, focused && s.iconLabelActive]}>{label}</Text>
     </View>
   );
 }
@@ -17,8 +18,8 @@ export default function AppLayout() {
   usePushNotifications(profile?.id);
 
   if (loading) return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' }}>
-      <ActivityIndicator size="large" color={C.green} />
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.bg }}>
+      <ActivityIndicator size="large" color={C.greenSoft} />
     </View>
   );
   if (!session) return <Redirect href="/(auth)/phone" />;
@@ -29,16 +30,16 @@ export default function AppLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: s.tabBar,
-        tabBarActiveTintColor: C.greenDeep,
-        tabBarInactiveTintColor: C.subtle,
-        tabBarLabelStyle: s.tabLabel,
+        tabBarShowLabel: false,
+        tabBarItemStyle: s.tabItem,
+        sceneStyle: { backgroundColor: C.bg },
       }}
     >
       <Tabs.Screen
         name="home"
         options={{
           title: 'Games',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🏟" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🏟" label="Games" focused={focused} />,
         }}
       />
       <Tabs.Screen
@@ -46,7 +47,7 @@ export default function AppLayout() {
         options={{
           title: 'Admin',
           href: isAdmin ? undefined : null,
-          tabBarIcon: ({ focused }) => <TabIcon emoji="⚙️" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="⚙️" label="Admin" focused={focused} />,
         }}
       />
       {/* Stack-only screens — hidden from tab bar */}
@@ -58,24 +59,38 @@ export default function AppLayout() {
 }
 
 const s = StyleSheet.create({
+  // Floating pill tab bar
   tabBar: {
-    backgroundColor: '#ffffff',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(0,0,0,0.08)',
-    height: 80,
-    paddingBottom: 18,
-    paddingTop: 8,
+    position: 'absolute',
+    left: 70,
+    right: 70,
+    bottom: Platform.OS === 'ios' ? 30 : 20,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(13,22,16,0.97)',
+    borderTopWidth: 0,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.55,
+    shadowRadius: 24,
+    elevation: 12,
+    paddingTop: 6,
   },
-  tabLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-    marginTop: 2,
-  },
+  tabItem: { paddingTop: 4 },
   iconWrap: {
-    width: 36, height: 36, borderRadius: 12,
     alignItems: 'center', justifyContent: 'center',
+    width: 92, height: 48, borderRadius: 24,
   },
-  iconWrapActive: { backgroundColor: C.greenUltra },
-  iconEmoji: { fontSize: 20 },
+  iconWrapActive: {
+    backgroundColor: 'rgba(74,222,128,0.12)',
+  },
+  iconEmoji: { fontSize: 19, lineHeight: 22 },
+  iconEmojiDim: { opacity: 0.45 },
+  iconLabel: {
+    fontSize: 10, fontWeight: '700', letterSpacing: 0.3,
+    color: C.subtle, marginTop: 1,
+  },
+  iconLabelActive: { color: C.greenSoft },
 });

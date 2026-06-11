@@ -126,7 +126,7 @@ export default function CreateGameScreen() {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" />
       <SafeAreaView style={s.headerSafe}>
         <View style={s.header}>
           <TouchableOpacity onPress={() => router.back()} style={s.backBtn} activeOpacity={0.7}>
@@ -285,7 +285,7 @@ export default function CreateGameScreen() {
 
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
-  headerSafe: { backgroundColor: '#fff', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.separator },
+  headerSafe: { backgroundColor: C.surface, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.separator },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14 },
   backBtn: { minWidth: 60 },
   backText: { fontSize: 15, color: C.green, fontWeight: '600' },

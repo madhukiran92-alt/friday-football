@@ -8,6 +8,7 @@ import { supabase } from '../../../src/lib/supabase';
 import { useAuth } from '../../../src/context/AuthContext';
 import { Game, Registration } from '../../../src/lib/types';
 import { splitIntoTeams } from '../../../src/lib/teamLogic';
+import { C } from '../../../src/lib/theme';
 
 export default function GenerateTeamsScreen() {
   const { gameId: preselectedGameId } = useLocalSearchParams<{ gameId?: string }>();
@@ -96,10 +97,10 @@ export default function GenerateTeamsScreen() {
     ]);
   }
 
-  if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color="#16a34a" />;
+  if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color={C.greenSoft} />;
 
-  const teamColors = ['#dcfce7', '#dbeafe'];
-  const teamTextColors = ['#16a34a', '#2563eb'];
+  const teamColors = [C.greenLight, 'rgba(59,130,246,0.14)'];
+  const teamTextColors = [C.greenSoft, '#93c5fd'];
 
   return (
     <ScrollView style={styles.container}>
@@ -162,20 +163,20 @@ export default function GenerateTeamsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  header: { flexDirection: 'row', alignItems: 'center', padding: 20, paddingTop: 60, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#e5e7eb', gap: 12 },
-  back: { fontSize: 16, color: '#16a34a' },
-  title: { fontSize: 20, fontWeight: '800', color: '#111827' },
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#374151', marginHorizontal: 16, marginTop: 20, marginBottom: 8 },
-  gameRow: { marginHorizontal: 16, marginBottom: 6, backgroundColor: '#fff', borderRadius: 10, padding: 14, borderWidth: 1.5, borderColor: 'transparent' },
-  gameRowSelected: { borderColor: '#16a34a' },
-  gameName: { fontSize: 15, fontWeight: '600', color: '#111827' },
-  gameMeta: { fontSize: 13, color: '#6b7280', marginTop: 2 },
-  button: { margin: 16, backgroundColor: '#6b7280', borderRadius: 12, padding: 16, alignItems: 'center' },
-  buttonSave: { backgroundColor: '#16a34a' },
+  container: { flex: 1, backgroundColor: C.bg },
+  header: { flexDirection: 'row', alignItems: 'center', padding: 20, paddingTop: 60, backgroundColor: C.surface, borderBottomWidth: 1, borderBottomColor: C.separator, gap: 12 },
+  back: { fontSize: 16, color: C.greenSoft },
+  title: { fontSize: 20, fontWeight: '800', color: C.ink },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: C.inkSoft, marginHorizontal: 16, marginTop: 20, marginBottom: 8 },
+  gameRow: { marginHorizontal: 16, marginBottom: 6, backgroundColor: C.surface, borderRadius: 10, padding: 14, borderWidth: 1.5, borderColor: 'transparent' },
+  gameRowSelected: { borderColor: C.greenSoft },
+  gameName: { fontSize: 15, fontWeight: '600', color: C.ink },
+  gameMeta: { fontSize: 13, color: C.muted, marginTop: 2 },
+  button: { margin: 16, backgroundColor: C.surface2, borderRadius: 12, padding: 16, alignItems: 'center' },
+  buttonSave: { backgroundColor: C.green },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   teamCard: { margin: 16, marginBottom: 8, borderRadius: 16, padding: 20 },
   teamName: { fontSize: 17, fontWeight: '800', marginBottom: 10 },
-  memberName: { fontSize: 15, color: '#111827', marginBottom: 4 },
+  memberName: { fontSize: 15, color: C.ink, marginBottom: 4 },
 });

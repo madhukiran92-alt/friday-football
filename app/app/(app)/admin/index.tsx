@@ -65,7 +65,7 @@ export default function AdminIndexScreen() {
   if (!isAdmin) return <Redirect href="/(app)/home" />;
   if (fetchError) return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" />
       <SafeAreaView style={styles.headerSafe}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Admin</Text>
@@ -89,7 +89,7 @@ export default function AdminIndexScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" />
 
       {/* ── Sidebar ── */}
       <Animated.View style={[styles.sidebar, { transform: [{ translateX: sidebarX }] }]}>
@@ -321,14 +321,14 @@ function GameDetail({ game, onRefresh, onDeselect }: { game: GameWithCount; onRe
       <View style={styles.actionGrid}>
         {game.status !== 'cancelled' && (
           <>
-            <ActionCard emoji="👥" label="Players" color="#3b82f6" bg="#eff6ff"
+            <ActionCard emoji="👥" label="Players" color="#93c5fd" bg="rgba(59,130,246,0.12)"
               onPress={() => router.push({ pathname: '/(app)/admin/manage-game', params: { gameId: game.id } })} />
-            <ActionCard emoji="✏️" label="Edit" color="#8b5cf6" bg="#f5f3ff"
+            <ActionCard emoji="✏️" label="Edit" color="#c4b5fd" bg="rgba(139,92,246,0.12)"
               onPress={() => router.push({ pathname: '/(app)/admin/edit-game', params: { gameId: game.id } })} />
           </>
         )}
         {(game.status === 'open' || game.status === 'closed') && (
-          <ActionCard emoji="🎲" label="Teams" color="#f59e0b" bg="#fffbeb"
+          <ActionCard emoji="🎲" label="Teams" color="#fbbf24" bg="rgba(245,158,11,0.12)"
             onPress={() => router.push({ pathname: '/(app)/admin/generate-teams', params: { gameId: game.id } })} />
         )}
         {game.status === 'cancelled' && (
@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
   // ── Header — matches home screen white bar ──
   main: { flex: 1 },
   headerSafe: {
-    backgroundColor: '#ffffff',
+    backgroundColor: C.surface,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.separator,
   },
   header: {
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   headerBack: { fontSize: 13, color: C.green, fontWeight: '600' },
 
   body: { flex: 1 },
-  bodyContent: { padding: 16, paddingBottom: 48 },
+  bodyContent: { padding: 16, paddingBottom: 130 },
 
   // ── Stat strip ──
   statRow: { flexDirection: 'row', gap: 10, marginBottom: 18 },
@@ -486,9 +486,9 @@ const styles = StyleSheet.create({
     backgroundColor: C.greenUltra, alignItems: 'center', justifyContent: 'center', marginBottom: 16,
   },
   heroIcon: { fontSize: 36 },
-  heroTitle: { fontSize: 22, fontWeight: '800', color: C.ink, marginBottom: 8, letterSpacing: -0.3 },
+  heroTitle: { fontSize: 22, color: C.ink, marginBottom: 8, letterSpacing: -0.4, fontFamily: C.fontDisplay },
   heroSub: { fontSize: 14, color: C.muted, textAlign: 'center', lineHeight: 20, marginBottom: 22 },
-  createBtn: { backgroundColor: C.green, borderRadius: C.rFull, paddingHorizontal: 28, paddingVertical: 13, ...C.shadow },
+  createBtn: { backgroundColor: C.green, borderRadius: C.rFull, paddingHorizontal: 28, paddingVertical: 13, ...C.glow },
   createBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 
   // ── Quick access ──

@@ -2,8 +2,9 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   Alert, ActivityIndicator, ScrollView, RefreshControl,
-  StatusBar, SafeAreaView,
+  StatusBar, SafeAreaView, Animated,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';
 import { useAuth } from '../../src/context/AuthContext';
@@ -123,23 +124,36 @@ export default function HomeScreen() {
     ]);
   }
 
+  const today = new Date().toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' });
+  const openCount = games.filter(g => g.status === 'open').length;
+
   if (loading) return (
     <View style={styles.loadingWrap}>
-      <StatusBar barStyle="dark-content" />
-      <ActivityIndicator size="large" color={C.green} />
+      <StatusBar barStyle="light-content" />
+      <ActivityIndicator size="large" color={C.greenSoft} />
     </View>
   );
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" />
 
-      {/* ── Minimal white top bar ── */}
-      <SafeAreaView style={styles.headerSafe}>
+      {/* ── Hero header ── */}
+      <SafeAreaView>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Pitch</Text>
-          <TouchableOpacity style={styles.avatarBtn} onPress={() => router.push('/(app)/profile')} activeOpacity={0.75}>
-            <Text style={styles.avatarBtnText}>{profile?.name?.charAt(0).toUpperCase() ?? '?'}</Text>
+          <View>
+            <View style={styles.brandRow}>
+              <PulseDot />
+              <Text style={styles.headerTitle}>Pitch</Text>
+            </View>
+            <Text style={styles.headerSub}>
+              {today}{openCount > 0 ? `  ·  ${openCount} game${openCount === 1 ? '' : 's'} open` : ''}
+            </Text>
+          </View>
+          <TouchableOpacity onPress={() => router.push('/(app)/profile')} activeOpacity={0.75}>
+            <LinearGradient colors={C.gradGreen} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.avatarBtn}>
+              <Text style={styles.avatarBtnText}>{profile?.name?.charAt(0).toUpperCase() ?? '?'}</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -153,16 +167,20 @@ export default function HomeScreen() {
       {!fetchError && <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={C.green} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} tintColor={C.greenSoft} />}
       >
         {games.length === 0 ? (
           <View style={styles.empty}>
-            <Text style={styles.emptyEmoji}>🏟</Text>
+            <View style={styles.emptyIconWrap}>
+              <Text style={styles.emptyEmoji}>🏟</Text>
+            </View>
             <Text style={styles.emptyTitle}>No games scheduled</Text>
             <Text style={styles.emptySub}>Games will appear here when they're created.</Text>
             {isAdmin && (
-              <TouchableOpacity style={styles.createBtn} onPress={() => router.push('/(app)/admin')} activeOpacity={0.8}>
-                <Text style={styles.createBtnText}>Create a Game</Text>
+              <TouchableOpacity onPress={() => router.push('/(app)/admin')} activeOpacity={0.85}>
+                <LinearGradient colors={C.gradGreen} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.createBtn}>
+                  <Text style={styles.createBtnText}>Create a Game</Text>
+                </LinearGradient>
               </TouchableOpacity>
             )}
           </View>
@@ -181,9 +199,55 @@ export default function HomeScreen() {
             />
           ))
         )}
-        <View style={{ height: 40 }} />
+        <View style={{ height: 130 }} />
       </ScrollView>}
 
+    </View>
+  );
+}
+
+/** The glowing live dot from the website, in app form. */
+function PulseDot() {
+  const pulse = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(Animated.sequence([
+      Animated.timing(pulse, { toValue: 1, duration: 1200, useNativeDriver: true }),
+      Animated.timing(pulse, { toValue: 0, duration: 1200, useNativeDriver: true }),
+    ]));
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+
+  return (
+    <View style={styles.dotWrap}>
+      <Animated.View style={[styles.dotHalo, {
+        opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.1, 0.55] }),
+        transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.9] }) }],
+      }]} />
+      <View style={styles.dot} />
+    </View>
+  );
+}
+
+/** Capacity bar that springs to its fill level when it appears. */
+function CapacityBar({ pct, full }: { pct: number; full: boolean }) {
+  const width = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.spring(width, { toValue: pct, friction: 8, tension: 28, useNativeDriver: false }).start();
+  }, [pct, width]);
+
+  return (
+    <View style={styles.capTrack}>
+      <Animated.View style={{
+        width: width.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
+        height: '100%',
+      }}>
+        <LinearGradient
+          colors={full ? ['#fb7185', '#e11d48'] : ['#22c55e', '#a3e635']}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+          style={styles.capFill}
+        />
+      </Animated.View>
     </View>
   );
 }
@@ -216,9 +280,10 @@ function GameCard({ game, profileId, isAdmin, joiningId, onJoin, onLeave, onCanc
   const isFull = game.confirmed.length >= game.max_players;
   const fillPct = Math.min(game.confirmed.length / game.max_players, 1);
   const isJoining = joiningId === game.id;
+  const imIn = game.myReg?.status === 'confirmed';
 
   const badge = STATUS_BADGE[game.status as keyof typeof STATUS_BADGE]
-    ?? { bg: C.bg, text: C.muted };
+    ?? { bg: C.surface2, text: C.muted };
 
   const statusLabel = game.status.charAt(0).toUpperCase() + game.status.slice(1);
 
@@ -229,15 +294,15 @@ function GameCard({ game, profileId, isAdmin, joiningId, onJoin, onLeave, onCanc
   return (
     <View style={[styles.card, isCancelled && styles.cardCancelled]}>
 
-      {/* Title + badge */}
+      {/* Title row: glowing sport tile + name + badge */}
       <View style={styles.cardHead}>
+        <View style={styles.sportTile}>
+          <Text style={styles.sportTileEmoji}>{SPORT_EMOJI[game.sport] ?? '🏟'}</Text>
+        </View>
         <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-            {game.sport && <Text style={styles.sportEmoji}>{SPORT_EMOJI[game.sport] ?? '🏟'}</Text>}
-            <Text style={styles.cardTitle}>{game.title}</Text>
-          </View>
-          <Text style={styles.cardMeta}>
-            {game.location ? `📍 ${game.location}  ·  ` : ''}🗓 {dateStr}
+          <Text style={styles.cardTitle} numberOfLines={1}>{game.title}</Text>
+          <Text style={styles.cardMeta} numberOfLines={1}>
+            {game.location ? `${game.location}  ·  ` : ''}{dateStr}
           </Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: badge.bg }]}>
@@ -245,17 +310,11 @@ function GameCard({ game, profileId, isAdmin, joiningId, onJoin, onLeave, onCanc
         </View>
       </View>
 
-      {/* Capacity bar */}
+      {/* Capacity */}
       <View style={styles.capRow}>
-        <View style={styles.capTrack}>
-          <View style={[
-            styles.capFill,
-            { width: `${fillPct * 100}%` as any },
-            isFull && { backgroundColor: C.red },
-          ]} />
-        </View>
+        <CapacityBar pct={fillPct} full={isFull} />
         <Text style={[styles.capLabel, isFull && { color: C.red }]}>
-          {game.confirmed.length} / {game.max_players}
+          {game.confirmed.length}/{game.max_players}
         </Text>
         {game.waitlist.length > 0 && (
           <View style={styles.waitBadge}>
@@ -264,38 +323,58 @@ function GameCard({ game, profileId, isAdmin, joiningId, onJoin, onLeave, onCanc
         )}
       </View>
 
-      {/* Waitlist position */}
+      {/* My status */}
+      {imIn && !isCancelled && (
+        <View style={styles.inBanner}>
+          <Text style={styles.inBannerText}>✓  You're in</Text>
+        </View>
+      )}
       {game.myReg?.status === 'waitlist' && (
         <View style={styles.waitBanner}>
           <Text style={styles.waitBannerText}>
-            ⏳  You're #{waitlistPosition(game.waitlist, game.myReg.id)} on the waitlist
+            ⏳  #{waitlistPosition(game.waitlist, game.myReg.id)} on the waitlist
           </Text>
         </View>
       )}
 
       {/* Join / Leave */}
       {game.status === 'open' && (
-        <TouchableOpacity
-          style={[styles.actionBtn, game.myReg ? styles.actionLeave : styles.actionJoin, isJoining && styles.actionDisabled]}
-          onPress={() => game.myReg ? onLeave(game) : onJoin(game)}
-          disabled={isJoining}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.actionText, game.myReg && styles.actionTextLeave]}>
-            {isJoining ? '…' : game.myReg
-              ? (game.myReg.status === 'waitlist' ? 'Leave Waitlist' : 'Leave Game')
-              : (isFull ? 'Join Waitlist' : 'Join Game')}
-          </Text>
-        </TouchableOpacity>
+        game.myReg ? (
+          <TouchableOpacity
+            style={[styles.actionBtn, styles.actionLeave, isJoining && styles.actionDisabled]}
+            onPress={() => onLeave(game)}
+            disabled={isJoining}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.actionTextLeave}>
+              {game.myReg.status === 'waitlist' ? 'Leave Waitlist' : 'Leave Game'}
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onPress={() => onJoin(game)}
+            disabled={isJoining}
+            activeOpacity={0.85}
+            style={[styles.actionWrap, isJoining && styles.actionDisabled]}
+          >
+            <LinearGradient colors={C.gradGreen} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.actionBtnGrad}>
+              <Text style={styles.actionText}>
+                {isJoining ? '…' : (isFull ? 'Join Waitlist' : 'Join Game')}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        )
       )}
 
       {game.status === 'completed' && (
         <TouchableOpacity
-          style={[styles.actionBtn, styles.actionJoin]}
           onPress={() => router.push({ pathname: '/(app)/teams', params: { gameId: game.id } })}
-          activeOpacity={0.8}
+          activeOpacity={0.85}
+          style={styles.actionWrap}
         >
-          <Text style={styles.actionText}>View Teams</Text>
+          <LinearGradient colors={C.gradGreen} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.actionBtnGrad}>
+            <Text style={styles.actionText}>View Teams</Text>
+          </LinearGradient>
         </TouchableOpacity>
       )}
 
@@ -368,88 +447,133 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   loadingWrap: { flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center' },
 
-  // ── Minimal header ──
-  headerSafe: { backgroundColor: '#ffffff', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.separator },
+  // ── Hero header ──
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 20, paddingVertical: 12,
+    paddingHorizontal: 22, paddingTop: 14, paddingBottom: 16,
   },
-  headerTitle: { fontSize: 20, fontWeight: '800', color: C.ink, letterSpacing: -0.3 },
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  headerTitle: {
+    fontSize: 30, color: C.ink, letterSpacing: -0.8,
+    fontFamily: C.fontDisplay,
+  },
+  headerSub: { fontSize: 13, color: C.muted, marginTop: 1 },
+  dotWrap: { width: 12, height: 12, alignItems: 'center', justifyContent: 'center' },
+  dotHalo: {
+    position: 'absolute', width: 12, height: 12, borderRadius: 6,
+    backgroundColor: C.greenSoft,
+  },
+  dot: { width: 9, height: 9, borderRadius: 5, backgroundColor: C.greenSoft },
   avatarBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: C.greenDeep, alignItems: 'center', justifyContent: 'center',
+    width: 42, height: 42, borderRadius: 21,
+    alignItems: 'center', justifyContent: 'center',
+    ...C.glowSoft,
   },
-  avatarBtnText: { fontSize: 15, fontWeight: '800', color: '#fff' },
+  avatarBtnText: { fontSize: 16, fontWeight: '800', color: '#fff' },
 
   scroll: { flex: 1 },
-  scrollContent: { paddingTop: 16, paddingHorizontal: 16 },
+  scrollContent: { paddingTop: 4, paddingHorizontal: 16 },
 
-  empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 32 },
-  emptyEmoji: { fontSize: 56, marginBottom: 16 },
-  emptyTitle: { fontSize: 22, fontWeight: '800', color: C.ink, marginBottom: 8 },
-  emptySub: { fontSize: 15, color: C.muted, textAlign: 'center', lineHeight: 22, marginBottom: 28 },
-  createBtn: { backgroundColor: C.green, borderRadius: C.rFull, paddingHorizontal: 28, paddingVertical: 13, ...C.shadow },
+  empty: { alignItems: 'center', paddingTop: 90, paddingHorizontal: 32 },
+  emptyIconWrap: {
+    width: 96, height: 96, borderRadius: 30,
+    backgroundColor: C.greenUltra,
+    borderWidth: 1, borderColor: C.greenLight,
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: 22,
+    ...C.glowSoft,
+  },
+  emptyEmoji: { fontSize: 44 },
+  emptyTitle: { fontSize: 23, color: C.ink, marginBottom: 8, fontFamily: C.fontDisplay, letterSpacing: -0.4 },
+  emptySub: { fontSize: 15, color: C.muted, textAlign: 'center', lineHeight: 22, marginBottom: 30 },
+  createBtn: { borderRadius: C.rFull, paddingHorizontal: 30, paddingVertical: 14, ...C.glow },
   createBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 
   // ── Card ──
-  card: { backgroundColor: C.surface, borderRadius: C.rLg, marginBottom: 14, overflow: 'hidden', ...C.shadow },
-  cardCancelled: { opacity: 0.55 },
+  card: {
+    backgroundColor: C.surface,
+    borderRadius: C.rLg,
+    marginBottom: 16,
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: C.border,
+    ...C.shadow,
+  },
+  cardCancelled: { opacity: 0.5 },
 
-  cardHead: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 16, paddingBottom: 10 },
-  sportEmoji: { fontSize: 18 },
-  cardTitle: { fontSize: 20, fontWeight: '800', color: C.ink, letterSpacing: -0.3 },
-  cardMeta: { fontSize: 13, color: C.muted, lineHeight: 18 },
+  cardHead: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, paddingBottom: 12 },
+  sportTile: {
+    width: 46, height: 46, borderRadius: 14,
+    backgroundColor: C.greenUltra,
+    borderWidth: 1, borderColor: C.greenLight,
+    alignItems: 'center', justifyContent: 'center',
+    ...C.glowSoft,
+  },
+  sportTileEmoji: { fontSize: 22 },
+  cardTitle: { fontSize: 18, color: C.ink, letterSpacing: -0.3, fontFamily: C.fontDisplay },
+  cardMeta: { fontSize: 12.5, color: C.muted, marginTop: 2 },
 
-  statusBadge: { borderRadius: C.rFull, paddingHorizontal: 10, paddingVertical: 5, alignSelf: 'flex-start' },
-  statusBadgeText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.1 },
+  statusBadge: { borderRadius: C.rFull, paddingHorizontal: 11, paddingVertical: 5, alignSelf: 'flex-start' },
+  statusBadgeText: { fontSize: 11.5, fontWeight: '700', letterSpacing: 0.2 },
 
-  capRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingBottom: 14 },
-  capTrack: { flex: 1, height: 6, backgroundColor: C.bg, borderRadius: C.rFull, overflow: 'hidden' },
-  capFill: { height: '100%', backgroundColor: C.green, borderRadius: C.rFull },
-  capLabel: { fontSize: 13, fontWeight: '700', color: C.muted, minWidth: 44, textAlign: 'right' },
-  waitBadge: { backgroundColor: C.amberLight, borderRadius: C.rFull, paddingHorizontal: 8, paddingVertical: 3 },
+  capRow: { flexDirection: 'row', alignItems: 'center', gap: 9, paddingHorizontal: 16, paddingBottom: 14 },
+  capTrack: { flex: 1, height: 7, backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: C.rFull, overflow: 'hidden' },
+  capFill: { flex: 1, borderRadius: C.rFull },
+  capLabel: { fontSize: 13, fontWeight: '700', color: C.muted, minWidth: 38, textAlign: 'right' },
+  waitBadge: { backgroundColor: C.amberLight, borderRadius: C.rFull, paddingHorizontal: 9, paddingVertical: 3 },
   waitBadgeText: { fontSize: 11, fontWeight: '700', color: C.amber },
+
+  inBanner: {
+    marginHorizontal: 16, marginBottom: 12,
+    backgroundColor: C.greenLight, borderRadius: C.rSm,
+    borderWidth: 1, borderColor: 'rgba(74,222,128,0.25)',
+    paddingHorizontal: 12, paddingVertical: 9,
+  },
+  inBannerText: { fontSize: 13, fontWeight: '700', color: C.greenSoft },
 
   waitBanner: {
     marginHorizontal: 16, marginBottom: 12,
     backgroundColor: C.amberLight, borderRadius: C.rSm,
+    borderWidth: 1, borderColor: C.amberBorder,
     paddingHorizontal: 12, paddingVertical: 9,
   },
   waitBannerText: { fontSize: 13, fontWeight: '600', color: C.amber },
 
-  actionBtn: { marginHorizontal: 16, marginBottom: 12, borderRadius: C.rMd, paddingVertical: 14, alignItems: 'center' },
-  actionJoin: { backgroundColor: C.green },
-  actionLeave: { backgroundColor: C.redLight, borderWidth: 1.5, borderColor: C.redBorder },
+  actionWrap: { marginHorizontal: 16, marginBottom: 12, borderRadius: C.rMd, ...C.glowSoft },
+  actionBtnGrad: { borderRadius: C.rMd, paddingVertical: 15, alignItems: 'center' },
+  actionBtn: { marginHorizontal: 16, marginBottom: 12, borderRadius: C.rMd, paddingVertical: 15, alignItems: 'center' },
+  actionLeave: { backgroundColor: C.redLight, borderWidth: 1, borderColor: C.redBorder },
   actionDisabled: { opacity: 0.5 },
-  actionText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  actionTextLeave: { color: C.red },
+  actionText: { color: '#fff', fontSize: 15, fontWeight: '700', letterSpacing: 0.2 },
+  actionTextLeave: { color: C.red, fontSize: 15, fontWeight: '700' },
 
   playerSection: { paddingHorizontal: 16, paddingBottom: 12 },
-  playerLabel: { fontSize: 11, fontWeight: '700', color: C.muted, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 },
+  playerLabel: { fontSize: 11, fontWeight: '700', color: C.muted, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 },
   playerCount: { fontWeight: '500', color: C.subtle },
   playerGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   playerChip: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: C.bg, borderRadius: C.rFull, paddingHorizontal: 10, paddingVertical: 5,
+    backgroundColor: C.glass, borderRadius: C.rFull, paddingHorizontal: 10, paddingVertical: 5,
+    borderWidth: StyleSheet.hairlineWidth, borderColor: C.separator,
   },
-  playerChipWait: { backgroundColor: C.amberLight },
-  playerChipMe: { backgroundColor: C.greenUltra, borderWidth: 1.5, borderColor: C.greenLight },
-  playerInit: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.07)', alignItems: 'center', justifyContent: 'center' },
-  playerInitWait: { backgroundColor: C.amberBorder },
+  playerChipWait: { backgroundColor: C.amberLight, borderColor: 'transparent' },
+  playerChipMe: { backgroundColor: C.greenLight, borderWidth: 1, borderColor: 'rgba(74,222,128,0.35)' },
+  playerInit: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' },
+  playerInitWait: { backgroundColor: 'rgba(245,158,11,0.35)' },
   playerInitMe: { backgroundColor: C.green },
-  playerInitTxt: { fontSize: 11, fontWeight: '700', color: C.muted },
+  playerInitTxt: { fontSize: 11, fontWeight: '700', color: C.inkSoft },
   playerInitTxtMe: { color: '#fff' },
   playerName: { fontSize: 13, color: C.inkSoft, maxWidth: 90 },
-  playerNameMe: { fontWeight: '700', color: C.green },
+  playerNameMe: { fontWeight: '700', color: C.greenSoft },
 
   adminRow: {
     flexDirection: 'row', gap: 6, flexWrap: 'wrap',
-    paddingHorizontal: 16, paddingBottom: 14, paddingTop: 6,
+    paddingHorizontal: 16, paddingBottom: 14, paddingTop: 8,
     borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: C.separator,
   },
   adminChip: {
     borderRadius: C.rFull, paddingHorizontal: 14, paddingVertical: 7,
-    backgroundColor: C.bg, borderWidth: 1, borderColor: C.separator,
+    backgroundColor: C.glass, borderWidth: 1, borderColor: C.border,
   },
   adminChipDanger: { backgroundColor: C.redLight, borderColor: C.redBorder },
   adminChipText: { fontSize: 13, fontWeight: '600', color: C.inkSoft },

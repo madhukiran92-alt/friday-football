@@ -7,6 +7,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { supabase } from '../../../src/lib/supabase';
 import { useAuth } from '../../../src/context/AuthContext';
 import { Game, Registration, Profile } from '../../../src/lib/types';
+import { C } from '../../../src/lib/theme';
 
 type RegWithProfile = Registration & { profile: Profile };
 
@@ -94,7 +95,7 @@ export default function ManageGameScreen() {
     );
   }
 
-  if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color="#16a34a" />;
+  if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color={C.greenSoft} />;
   if (!game || !isAdmin) return null;
 
   const registrationRow = (reg: RegWithProfile, isWait = false) => (
@@ -139,6 +140,7 @@ export default function ManageGameScreen() {
         <TextInput
           style={styles.input}
           placeholder="Search by name..."
+          placeholderTextColor={C.subtle}
           value={search}
           onChangeText={searchPlayers}
         />
@@ -173,25 +175,25 @@ export default function ManageGameScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f9fafb' },
-  header: { flexDirection: 'row', alignItems: 'center', padding: 20, paddingTop: 60, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#e5e7eb', gap: 12 },
-  back: { fontSize: 16, color: '#16a34a' },
-  title: { fontSize: 18, fontWeight: '800', color: '#111827', flex: 1 },
+  container: { flex: 1, backgroundColor: C.bg },
+  header: { flexDirection: 'row', alignItems: 'center', padding: 20, paddingTop: 60, backgroundColor: C.surface, borderBottomWidth: 1, borderBottomColor: C.separator, gap: 12 },
+  back: { fontSize: 16, color: C.greenSoft },
+  title: { fontSize: 18, fontWeight: '800', color: C.ink, flex: 1 },
   statsRow: { flexDirection: 'row', gap: 12, padding: 16, justifyContent: 'center' },
-  statBadge: { flex: 1, backgroundColor: '#fff', borderRadius: 12, padding: 14, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, elevation: 1 },
-  statValue: { fontSize: 22, fontWeight: '800', color: '#111827' },
-  statLabel: { fontSize: 12, color: '#6b7280', marginTop: 2 },
+  statBadge: { flex: 1, backgroundColor: C.surface, borderRadius: 12, padding: 14, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, elevation: 1 },
+  statValue: { fontSize: 22, fontWeight: '800', color: C.ink },
+  statLabel: { fontSize: 12, color: C.muted, marginTop: 2 },
   section: { padding: 16, paddingTop: 0 },
-  sectionTitle: { fontSize: 14, fontWeight: '700', color: '#374151', marginBottom: 8, marginTop: 16 },
-  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d1d5db', borderRadius: 10, padding: 14, fontSize: 15 },
-  searchResult: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: '#fff', padding: 12, borderBottomWidth: 1, borderColor: '#e5e7eb' },
-  searchResultText: { fontSize: 15, color: '#111827' },
-  addText: { fontSize: 14, color: '#16a34a', fontWeight: '700' },
-  playerRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 10, padding: 12, marginBottom: 4 },
-  playerRowWait: { backgroundColor: '#fef9c3' },
-  playerName: { flex: 1, fontSize: 15, color: '#111827' },
-  removeBtn: { backgroundColor: '#fee2e2', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
+  sectionTitle: { fontSize: 14, fontWeight: '700', color: C.inkSoft, marginBottom: 8, marginTop: 16 },
+  input: { backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 10, padding: 14, fontSize: 15, color: C.ink },
+  searchResult: { flexDirection: 'row', justifyContent: 'space-between', backgroundColor: C.surface, padding: 12, borderBottomWidth: 1, borderColor: C.separator },
+  searchResultText: { fontSize: 15, color: C.ink },
+  addText: { fontSize: 14, color: C.greenSoft, fontWeight: '700' },
+  playerRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface, borderRadius: 10, padding: 12, marginBottom: 4 },
+  playerRowWait: { backgroundColor: C.amberLight },
+  playerName: { flex: 1, fontSize: 15, color: C.ink },
+  removeBtn: { backgroundColor: C.redLight, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 },
   removeBtnDisabled: { opacity: 0.5 },
-  removeBtnText: { fontSize: 13, fontWeight: '600', color: '#ef4444' },
-  empty: { fontSize: 14, color: '#9ca3af', fontStyle: 'italic' },
+  removeBtnText: { fontSize: 13, fontWeight: '600', color: C.red },
+  empty: { fontSize: 14, color: C.subtle, fontStyle: 'italic' },
 });

@@ -11,7 +11,7 @@ import { C } from '../../src/lib/theme';
 const PALETTES = [
   { accent: C.green,   bg: C.greenUltra,   initial: C.greenLight,  initText: C.green },
   { accent: C.indigo,  bg: C.indigoLight,  initial: C.indigoBorder, initText: C.indigo },
-  { accent: '#7c3aed', bg: '#f5f3ff',      initial: '#ede9fe',      initText: '#7c3aed' },
+  { accent: '#c4b5fd', bg: 'rgba(139,92,246,0.12)', initial: 'rgba(139,92,246,0.35)', initText: '#c4b5fd' },
   { accent: C.amber,   bg: C.amberLight,   initial: C.amberBorder,  initText: C.amber },
 ];
 

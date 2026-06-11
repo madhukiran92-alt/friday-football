@@ -58,11 +58,13 @@ const s = StyleSheet.create({
   devBox: {
     backgroundColor: C.redLight, borderRadius: 10, padding: 12,
     marginBottom: 24, width: '100%',
+    borderWidth: 1, borderColor: C.redBorder,
   },
   devText: { fontSize: 12, color: C.red, fontFamily: 'Courier New' },
   btn: {
     backgroundColor: C.green, borderRadius: C.rFull,
     paddingHorizontal: 36, paddingVertical: 14,
+    ...C.glow,
   },
   btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
 });
