@@ -99,8 +99,8 @@ export default function GenerateTeamsScreen() {
 
   if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" color={C.greenSoft} />;
 
-  const teamColors = [C.greenLight, 'rgba(59,130,246,0.14)'];
-  const teamTextColors = [C.greenSoft, '#93c5fd'];
+  const teamColors = [C.greenUltra, '#EFF6FF'];
+  const teamTextColors = [C.greenDeep, '#2563EB'];
 
   return (
     <ScrollView style={styles.container}>

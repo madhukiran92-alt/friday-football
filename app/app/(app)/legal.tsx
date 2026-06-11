@@ -17,7 +17,7 @@ export default function LegalScreen() {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       <SafeAreaView style={s.headerSafe}>
         <View style={s.header}>

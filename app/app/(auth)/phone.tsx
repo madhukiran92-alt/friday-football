@@ -37,11 +37,11 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       {/* Floodlight glow */}
       <LinearGradient
-        colors={['rgba(74,222,128,0.16)', 'rgba(74,222,128,0.04)', 'transparent']}
+        colors={['#D9F8EA', '#F1FBF6', 'rgba(247,248,250,0)']}
         style={styles.floodlight}
       />
 
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 15,
     fontSize: 16, color: C.ink,
   },
-  inputFocused: { borderColor: C.greenSoft, backgroundColor: 'rgba(255,255,255,0.07)' },
+  inputFocused: { borderColor: C.green, backgroundColor: '#FFFFFF' },
 
   btnWrap: { borderRadius: C.rMd, marginTop: 6, marginBottom: 6, ...C.glow },
   btn: { borderRadius: C.rMd, paddingVertical: 16, alignItems: 'center' },

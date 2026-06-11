@@ -65,7 +65,7 @@ export default function AdminIndexScreen() {
   if (!isAdmin) return <Redirect href="/(app)/home" />;
   if (fetchError) return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <SafeAreaView style={styles.headerSafe}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Admin</Text>
@@ -89,7 +89,7 @@ export default function AdminIndexScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       {/* ── Sidebar ── */}
       <Animated.View style={[styles.sidebar, { transform: [{ translateX: sidebarX }] }]}>
@@ -321,14 +321,14 @@ function GameDetail({ game, onRefresh, onDeselect }: { game: GameWithCount; onRe
       <View style={styles.actionGrid}>
         {game.status !== 'cancelled' && (
           <>
-            <ActionCard emoji="👥" label="Players" color="#93c5fd" bg="rgba(59,130,246,0.12)"
+            <ActionCard emoji="👥" label="Players" color="#2563EB" bg="#EFF6FF"
               onPress={() => router.push({ pathname: '/(app)/admin/manage-game', params: { gameId: game.id } })} />
-            <ActionCard emoji="✏️" label="Edit" color="#c4b5fd" bg="rgba(139,92,246,0.12)"
+            <ActionCard emoji="✏️" label="Edit" color="#7C3AED" bg="#F5F3FF"
               onPress={() => router.push({ pathname: '/(app)/admin/edit-game', params: { gameId: game.id } })} />
           </>
         )}
         {(game.status === 'open' || game.status === 'closed') && (
-          <ActionCard emoji="🎲" label="Teams" color="#fbbf24" bg="rgba(245,158,11,0.12)"
+          <ActionCard emoji="🎲" label="Teams" color="#D97706" bg="#FFFBEB"
             onPress={() => router.push({ pathname: '/(app)/admin/generate-teams', params: { gameId: game.id } })} />
         )}
         {game.status === 'cancelled' && (

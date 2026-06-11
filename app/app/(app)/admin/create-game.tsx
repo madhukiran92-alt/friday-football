@@ -126,7 +126,7 @@ export default function CreateGameScreen() {
 
   return (
     <View style={s.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <SafeAreaView style={s.headerSafe}>
         <View style={s.header}>
           <TouchableOpacity onPress={() => router.back()} style={s.backBtn} activeOpacity={0.7}>

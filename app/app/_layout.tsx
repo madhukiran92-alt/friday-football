@@ -1,14 +1,14 @@
 import { Slot } from 'expo-router';
 import { View } from 'react-native';
-import { useFonts, SpaceGrotesk_500Medium, SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
+import { useFonts, PlusJakartaSans_600SemiBold, PlusJakartaSans_800ExtraBold } from '@expo-google-fonts/plus-jakarta-sans';
 import { AuthProvider } from '../src/context/AuthContext';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 import { C } from '../src/lib/theme';
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    SpaceGrotesk_500Medium,
-    SpaceGrotesk_700Bold,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_800ExtraBold,
   });
 
   // Hold on the dark background until the display font is ready —

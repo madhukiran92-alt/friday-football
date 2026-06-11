@@ -129,14 +129,14 @@ export default function HomeScreen() {
 
   if (loading) return (
     <View style={styles.loadingWrap}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <ActivityIndicator size="large" color={C.greenSoft} />
     </View>
   );
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
       {/* ── Hero header ── */}
       <SafeAreaView>
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
   statusBadgeText: { fontSize: 11.5, fontWeight: '700', letterSpacing: 0.2 },
 
   capRow: { flexDirection: 'row', alignItems: 'center', gap: 9, paddingHorizontal: 16, paddingBottom: 14 },
-  capTrack: { flex: 1, height: 7, backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: C.rFull, overflow: 'hidden' },
+  capTrack: { flex: 1, height: 7, backgroundColor: '#EAEEF2', borderRadius: C.rFull, overflow: 'hidden' },
   capFill: { flex: 1, borderRadius: C.rFull },
   capLabel: { fontSize: 13, fontWeight: '700', color: C.muted, minWidth: 38, textAlign: 'right' },
   waitBadge: { backgroundColor: C.amberLight, borderRadius: C.rFull, paddingHorizontal: 9, paddingVertical: 3 },
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
   inBanner: {
     marginHorizontal: 16, marginBottom: 12,
     backgroundColor: C.greenLight, borderRadius: C.rSm,
-    borderWidth: 1, borderColor: 'rgba(74,222,128,0.25)',
+    borderWidth: 1, borderColor: 'rgba(16,185,129,0.3)',
     paddingHorizontal: 12, paddingVertical: 9,
   },
   inBannerText: { fontSize: 13, fontWeight: '700', color: C.greenSoft },
@@ -557,8 +557,8 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth, borderColor: C.separator,
   },
   playerChipWait: { backgroundColor: C.amberLight, borderColor: 'transparent' },
-  playerChipMe: { backgroundColor: C.greenLight, borderWidth: 1, borderColor: 'rgba(74,222,128,0.35)' },
-  playerInit: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' },
+  playerChipMe: { backgroundColor: C.greenLight, borderWidth: 1, borderColor: 'rgba(16,185,129,0.35)' },
+  playerInit: { width: 22, height: 22, borderRadius: 11, backgroundColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center' },
   playerInitWait: { backgroundColor: 'rgba(245,158,11,0.35)' },
   playerInitMe: { backgroundColor: C.green },
   playerInitTxt: { fontSize: 11, fontWeight: '700', color: C.inkSoft },
