@@ -5,167 +5,317 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Become an organiser — Pitch</title>
   <meta name="description" content="Create your free Pitch organiser account. Run games, manage players, and generate teams for any sport." />
+  <meta name="theme-color" content="#060d09" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏟</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --green:       #16a34a;
-      --green-deep:  #14532d;
-      --green-light: #dcfce7;
-      --ink:         #0f172a;
-      --ink-soft:    #1e293b;
-      --muted:       #64748b;
-      --subtle:      #94a3b8;
-      --bg:          #f8fafc;
-      --surface:     #ffffff;
-      --separator:   #e2e8f0;
-      --red:         #dc2626;
-      --red-light:   #fef2f2;
+      --bg:          #060d09;
+      --bg-deep:     #030704;
+      --surface:     rgba(255,255,255,.035);
+      --border:      rgba(255,255,255,.09);
+      --border-glow: rgba(74,222,128,.35);
+      --green:       #22c55e;
+      --green-soft:  #4ade80;
+      --lime:        #a3e635;
+      --teal:        #2dd4bf;
+      --white:       #f4faf6;
+      --body:        #9fb1a6;
+      --dim:         #5d6f64;
+      --red:         #f87171;
+      --font-display: 'Space Grotesk', -apple-system, sans-serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(160deg, #f0fdf4 0%, #ffffff 50%, #f8fafc 100%);
-      color: var(--ink-soft);
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--body);
       line-height: 1.6;
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    ::selection { background: rgba(34,197,94,.35); color: #fff; }
+
+    /* Backdrop */
+    .backdrop {
+      position: fixed; inset: 0;
+      z-index: -2;
+      background:
+        radial-gradient(ellipse 70% 45% at 50% -5%, rgba(74,222,128,.13), transparent 65%),
+        radial-gradient(ellipse 40% 35% at 88% 30%, rgba(45,212,191,.07), transparent 70%),
+        linear-gradient(180deg, #08110c 0%, var(--bg) 40%, var(--bg-deep) 100%);
+    }
+    .backdrop::after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+      opacity: .035;
+      pointer-events: none;
     }
 
     nav {
-      background: rgba(255,255,255,0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--separator);
-      padding: 0 24px; height: 60px;
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(6,13,9,.6);
+      backdrop-filter: blur(18px) saturate(1.3);
+      -webkit-backdrop-filter: blur(18px) saturate(1.3);
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      padding: 0 28px; height: 66px;
       display: flex; align-items: center; justify-content: space-between;
     }
-    .nav-logo { font-size: 20px; font-weight: 800; color: var(--ink); letter-spacing: -0.5px; text-decoration: none; }
-    .nav-logo span { color: var(--green); }
-    .nav-back { font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: none; }
-    .nav-back:hover { color: var(--ink); }
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 22px; font-weight: 700; color: var(--white);
+      letter-spacing: -0.5px; text-decoration: none;
+      display: flex; align-items: center; gap: 9px;
+    }
+    .nav-logo .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--green-soft);
+      box-shadow: 0 0 14px rgba(74,222,128,.9);
+      animation: pulse-dot 2.4s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(74,222,128,.7); }
+      50% { transform: scale(1.25); box-shadow: 0 0 22px rgba(74,222,128,1); }
+    }
+    .nav-back { font-size: 14px; font-weight: 600; color: var(--body); text-decoration: none; transition: color .15s; }
+    .nav-back:hover { color: var(--white); }
 
     .wrap {
-      max-width: 960px; margin: 0 auto;
-      padding: 56px 24px 80px;
+      max-width: 1000px; margin: 0 auto;
+      padding: 72px 24px 100px;
       display: grid;
-      grid-template-columns: 1fr 420px;
-      gap: 56px;
+      grid-template-columns: 1fr 430px;
+      gap: 64px;
       align-items: start;
     }
-    @media (max-width: 860px) {
-      .wrap { grid-template-columns: 1fr; gap: 40px; max-width: 480px; }
+    @media (max-width: 880px) {
+      .wrap { grid-template-columns: 1fr; gap: 44px; max-width: 500px; padding-top: 52px; }
     }
 
     .badge {
-      display: inline-block;
-      background: var(--green-light); color: var(--green-deep);
-      font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
-      padding: 5px 12px; border-radius: 999px;
-      margin-bottom: 18px;
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(74,222,128,.25);
+      color: var(--green-soft);
+      font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
+      padding: 7px 16px; border-radius: 999px;
+      margin-bottom: 22px;
+      box-shadow: 0 0 30px rgba(34,197,94,.1);
+      opacity: 0;
+      animation: rise .7s cubic-bezier(.2,.7,.3,1) .05s forwards;
     }
     h1 {
-      font-size: 38px; font-weight: 900; color: var(--ink);
-      letter-spacing: -1.4px; line-height: 1.12;
-      margin-bottom: 12px;
+      font-family: var(--font-display);
+      font-size: clamp(36px, 5vw, 50px);
+      font-weight: 700; color: var(--white);
+      letter-spacing: -0.035em; line-height: 1.08;
+      margin-bottom: 14px;
+      opacity: 0;
+      animation: rise .8s cubic-bezier(.2,.7,.3,1) .15s forwards;
     }
-    .sub { font-size: 16px; color: var(--muted); margin-bottom: 36px; }
+    h1 em {
+      font-style: normal;
+      background: linear-gradient(95deg, var(--green-soft), var(--lime));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 24px rgba(163,230,53,.3));
+    }
+    .sub {
+      font-size: 16px; color: var(--body); margin-bottom: 40px;
+      opacity: 0;
+      animation: rise .8s cubic-bezier(.2,.7,.3,1) .25s forwards;
+    }
+    .sub strong { color: var(--white); font-weight: 600; }
 
-    /* How it works steps */
-    .steps { display: flex; flex-direction: column; }
-    .step { display: flex; gap: 16px; padding-bottom: 26px; position: relative; }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Steps */
+    .steps { display: flex; flex-direction: column; opacity: 0; animation: rise .8s ease .35s forwards; }
+    .step { display: flex; gap: 18px; padding-bottom: 28px; position: relative; }
     .step:not(:last-child)::before {
       content: '';
-      position: absolute; left: 17px; top: 38px; bottom: 0;
-      width: 2px; background: var(--separator);
+      position: absolute; left: 19px; top: 44px; bottom: 2px;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--green-soft), rgba(74,222,128,.08));
+      box-shadow: 0 0 10px rgba(74,222,128,.2);
     }
     .step-num {
       flex-shrink: 0;
-      width: 36px; height: 36px; border-radius: 18px;
-      background: var(--green); color: #fff;
+      width: 40px; height: 40px; border-radius: 13px;
+      background: linear-gradient(135deg, var(--green), #15803d);
+      color: #fff;
       display: flex; align-items: center; justify-content: center;
-      font-size: 15px; font-weight: 800;
+      font-family: var(--font-display);
+      font-size: 16px; font-weight: 700;
       position: relative; z-index: 1;
+      box-shadow: 0 0 24px rgba(34,197,94,.35), 0 1px 0 rgba(255,255,255,.25) inset;
     }
-    .step-title { font-size: 16px; font-weight: 800; color: var(--ink); letter-spacing: -0.2px; margin-bottom: 3px; }
-    .step-desc { font-size: 14px; color: var(--muted); line-height: 1.55; }
+    .step-title {
+      font-family: var(--font-display);
+      font-size: 17px; font-weight: 700; color: var(--white);
+      letter-spacing: -0.2px; margin-bottom: 4px;
+    }
+    .step-desc { font-size: 14px; color: var(--body); line-height: 1.6; }
 
     .free-note {
-      margin-top: 6px;
-      background: var(--green-light);
-      border-radius: 12px;
-      padding: 13px 16px;
-      font-size: 13px; font-weight: 600; color: var(--green-deep);
+      margin-top: 8px;
+      background: rgba(34,197,94,.08);
+      border: 1px solid rgba(74,222,128,.2);
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 13px; font-weight: 600; color: var(--green-soft);
+      opacity: 0;
+      animation: rise .8s ease .45s forwards;
     }
 
     /* Form card */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--separator);
-      border-radius: 20px;
-      padding: 28px;
-      box-shadow: 0 10px 36px rgba(15, 23, 42, .06);
+    .card-wrap { position: relative; opacity: 0; animation: rise .9s cubic-bezier(.2,.7,.3,1) .3s forwards; }
+    .card-glow {
+      position: absolute; inset: -30px;
+      background: radial-gradient(ellipse 60% 55% at 50% 45%, rgba(34,197,94,.16), transparent 70%);
+      filter: blur(24px);
+      pointer-events: none;
     }
-    .card-title { font-size: 19px; font-weight: 800; color: var(--ink); letter-spacing: -0.3px; margin-bottom: 18px; }
+    .card {
+      position: relative;
+      background: rgba(10,18,13,.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 30px 70px rgba(0,0,0,.45);
+    }
+    .card::before {
+      content: '';
+      position: absolute; inset: -1px;
+      border-radius: 24px;
+      padding: 1px;
+      background: linear-gradient(160deg, rgba(74,222,128,.4), transparent 35%, transparent 70%, rgba(45,212,191,.25));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 20px; font-weight: 700; color: var(--white);
+      letter-spacing: -0.3px; margin-bottom: 20px;
+    }
 
     label {
       display: block;
-      font-size: 13px; font-weight: 600; color: var(--ink-soft);
-      margin: 16px 0 6px;
+      font-size: 13px; font-weight: 600; color: var(--white);
+      margin: 18px 0 7px;
     }
     label:first-of-type { margin-top: 0; }
     input {
       width: 100%;
-      background: var(--bg);
-      border: 1.5px solid transparent;
+      background: rgba(255,255,255,.05);
+      border: 1.5px solid rgba(255,255,255,.1);
       border-radius: 12px;
-      padding: 13px 14px;
-      font-size: 15px; color: var(--ink);
+      padding: 13px 15px;
+      font-size: 15px; color: var(--white);
+      font-family: var(--font-body);
       outline: none;
-      transition: border-color .15s, background .15s;
+      transition: border-color .2s, background .2s, box-shadow .2s;
     }
-    input:focus { border-color: var(--green); background: var(--surface); }
-    .hint { font-size: 12px; color: var(--subtle); margin-top: 5px; }
+    input::placeholder { color: var(--dim); }
+    input:focus {
+      border-color: var(--green-soft);
+      background: rgba(255,255,255,.07);
+      box-shadow: 0 0 0 3px rgba(34,197,94,.15);
+    }
+    .hint { font-size: 12px; color: var(--dim); margin-top: 6px; }
 
     button {
+      position: relative;
       width: 100%;
-      background: var(--green);
+      background: linear-gradient(135deg, var(--green) 0%, #15803d 100%);
       color: #fff;
       border: none; border-radius: 12px;
-      padding: 15px;
+      padding: 16px;
       font-size: 15px; font-weight: 700;
+      font-family: var(--font-body);
       cursor: pointer;
-      margin-top: 24px;
-      transition: opacity .15s, transform .15s;
+      margin-top: 26px;
+      overflow: hidden;
+      transition: transform .2s, box-shadow .2s;
+      box-shadow: 0 0 28px rgba(34,197,94,.3), 0 1px 0 rgba(255,255,255,.2) inset;
     }
-    button:hover:not(:disabled) { opacity: .9; transform: translateY(-1px); }
+    button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 0 40px rgba(34,197,94,.5), 0 1px 0 rgba(255,255,255,.2) inset; }
     button:disabled { opacity: .5; cursor: default; }
+    button::after {
+      content: '';
+      position: absolute; top: 0; left: -80%;
+      width: 50%; height: 100%;
+      background: linear-gradient(105deg, transparent, rgba(255,255,255,.4), transparent);
+      transform: skewX(-20deg);
+      animation: shine 4.5s ease-in-out infinite;
+    }
+    @keyframes shine { 0%, 55% { left: -80%; } 100% { left: 170%; } }
 
     .msg {
       margin-top: 16px;
       border-radius: 12px;
-      padding: 13px 14px;
+      padding: 13px 15px;
       font-size: 14px; font-weight: 600;
       display: none;
     }
-    .msg.error { display: block; background: var(--red-light); color: var(--red); }
+    .msg.error {
+      display: block;
+      background: rgba(248,113,113,.1);
+      border: 1px solid rgba(248,113,113,.3);
+      color: var(--red);
+    }
 
-    .success-card { text-align: center; padding: 12px 0; }
-    .success-card .tick { font-size: 44px; margin-bottom: 12px; }
-    .success-card h2 { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -0.4px; margin-bottom: 8px; }
-    .success-card p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+    .success-card { text-align: center; padding: 16px 0; }
+    .success-card .tick {
+      font-size: 48px; margin-bottom: 14px;
+      display: inline-block;
+      animation: pop .5s cubic-bezier(.2,1.6,.4,1);
+    }
+    @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+    .success-card h2 {
+      font-family: var(--font-display);
+      font-size: 24px; font-weight: 700; color: var(--white);
+      letter-spacing: -0.4px; margin-bottom: 10px;
+    }
+    .success-card p { font-size: 14px; color: var(--body); line-height: 1.65; }
 
     .foot {
-      text-align: center; margin-top: 20px;
-      font-size: 12px; color: var(--subtle); line-height: 1.6;
+      text-align: center; margin-top: 24px;
+      font-size: 12px; color: var(--dim); line-height: 1.7;
     }
-    .foot a { color: var(--muted); }
+    .foot a { color: var(--body); }
+    .foot a:hover { color: var(--white); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .001s !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001s !important;
+      }
+    }
   </style>
 </head>
 <body>
 
+  <div class="backdrop"></div>
+
   <nav>
-    <a href="/" class="nav-logo">Pitch<span>.</span></a>
+    <a href="/" class="nav-logo"><span class="dot"></span>Pitch</a>
     <a href="/" class="nav-back">← Back to pitchapp.net</a>
   </nav>
 
@@ -174,7 +324,7 @@
     <!-- Left: explanation -->
     <div>
       <span class="badge">FOR ORGANISERS</span>
-      <h1>Run your games with Pitch</h1>
+      <h1>Run your games with <em>Pitch</em></h1>
       <p class="sub">
         Pitch has two kinds of accounts: <strong>organisers</strong> and <strong>players</strong>.
         Organiser accounts are created right here — players simply download the app and sign up there.
@@ -210,7 +360,8 @@
     </div>
 
     <!-- Right: form -->
-    <div>
+    <div class="card-wrap">
+      <div class="card-glow"></div>
       <div class="card" id="card">
         <div class="card-title">Create your organiser account</div>
         <form id="form">
