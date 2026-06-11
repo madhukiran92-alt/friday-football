@@ -52,6 +52,13 @@
       letter-spacing: -0.5px; text-decoration: none;
     }
     .nav-logo span { color: var(--green); }
+    .nav-right { display: flex; align-items: center; gap: 18px; }
+    .nav-link {
+      font-size: 14px; font-weight: 600; color: var(--muted);
+      text-decoration: none;
+      transition: color .15s;
+    }
+    .nav-link:hover { color: var(--ink); }
     .nav-cta {
       background: var(--green); color: #fff;
       padding: 8px 20px; border-radius: 999px;
@@ -129,6 +136,19 @@
       margin-top: 20px;
       font-size: 13px; color: var(--subtle);
     }
+    .hero-organiser {
+      display: inline-block;
+      margin-top: 14px;
+      font-size: 14px; color: var(--muted);
+      text-decoration: none;
+      background: var(--surface);
+      border: 1.5px solid var(--separator);
+      border-radius: 999px;
+      padding: 10px 22px;
+      transition: border-color .15s, transform .15s;
+    }
+    .hero-organiser strong { color: var(--green); }
+    .hero-organiser:hover { border-color: var(--green); transform: translateY(-1px); }
 
     /* ── Phone mockup ── */
     .phone-wrap {
@@ -312,6 +332,18 @@
       margin-bottom: 44px;
     }
     .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .cta-organiser {
+      display: inline-block;
+      margin-top: 28px;
+      font-size: 14px; font-weight: 600;
+      color: rgba(255,255,255,.85);
+      text-decoration: none;
+      border: 1.5px solid rgba(255,255,255,.3);
+      border-radius: 999px;
+      padding: 10px 22px;
+      transition: border-color .15s;
+    }
+    .cta-organiser:hover { border-color: #fff; }
     .btn-white {
       display: flex; align-items: center; gap: 10px;
       background: #fff; color: var(--ink);
@@ -363,7 +395,10 @@
   <!-- Nav -->
   <nav>
     <a href="/" class="nav-logo">Pitch<span>.</span></a>
-    <a href="#download" class="nav-cta">Get the app</a>
+    <div class="nav-right">
+      <a href="/admin/" class="nav-link">For organisers</a>
+      <a href="#download" class="nav-cta">Get the app</a>
+    </div>
   </nav>
 
   <!-- Hero -->
@@ -383,6 +418,7 @@
       </a>
     </div>
     <p class="hero-note">Free to download · No ads · No subscription</p>
+    <a href="/admin/" class="hero-organiser">Want to run your own games? <strong>Become an organiser →</strong></a>
 
     <!-- Phone mockup -->
     <div class="phone-wrap">
@@ -529,6 +565,7 @@
         <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" style="height:54px;" />
       </a>
     </div>
+    <a href="/admin/" class="cta-organiser">Organising games? Create your free organiser account →</a>
   </section>
 
   <!-- Footer -->
