@@ -13,6 +13,7 @@ export default function ProfileScreen() {
   const { profile, refreshProfile } = useAuth();
   const [name, setName] = useState(profile?.name ?? '');
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [focused, setFocused] = useState(false);
 
   async function save() {
@@ -29,6 +30,39 @@ export default function ProfileScreen() {
       { text: 'Cancel', style: 'cancel' },
       { text: 'Sign Out', style: 'destructive', onPress: async () => { await supabase.auth.signOut(); } },
     ]);
+  }
+
+  async function deleteAccount() {
+    // Two-step confirmation — this is permanent and irreversible.
+    Alert.alert(
+      'Delete account?',
+      'This permanently deletes your account and removes you from all games. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: confirmDelete },
+      ],
+    );
+  }
+
+  function confirmDelete() {
+    Alert.alert(
+      'Are you absolutely sure?',
+      'Your account and all your data will be erased immediately.',
+      [
+        { text: 'Keep my account', style: 'cancel' },
+        { text: 'Delete forever', style: 'destructive', onPress: async () => {
+          setDeleting(true);
+          const { error } = await supabase.rpc('delete_my_account');
+          if (error) {
+            setDeleting(false);
+            Alert.alert('Error', 'Could not delete your account. Please try again or email hello@pitchapp.net.');
+            return;
+          }
+          // Account is gone — clear the local session, which returns to the login screen.
+          await supabase.auth.signOut();
+        }},
+      ],
+    );
   }
 
   if (!profile) return (
@@ -100,6 +134,16 @@ export default function ProfileScreen() {
 
           <TouchableOpacity style={styles.signOutBtn} onPress={signOut} activeOpacity={0.75}>
             <Text style={styles.signOutText}>Sign Out</Text>
+          </TouchableOpacity>
+
+          {/* Delete account */}
+          <TouchableOpacity
+            style={[styles.deleteBtn, deleting && styles.btnDisabled]}
+            onPress={deleteAccount}
+            disabled={deleting}
+            activeOpacity={0.6}
+          >
+            <Text style={styles.deleteText}>{deleting ? 'Deleting…' : 'Delete Account'}</Text>
           </TouchableOpacity>
 
           {/* Legal links */}
@@ -186,6 +230,12 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: C.redBorder,
   },
   signOutText: { color: C.red, fontSize: 15, fontWeight: '700' },
+
+  deleteBtn: {
+    marginHorizontal: 16, marginTop: 10, paddingVertical: 12,
+    alignItems: 'center',
+  },
+  deleteText: { color: C.subtle, fontSize: 13, fontWeight: '600', textDecorationLine: 'underline' },
 
   legalRow: {
     flexDirection: 'row', justifyContent: 'center', alignItems: 'center',

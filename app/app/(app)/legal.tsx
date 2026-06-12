@@ -8,7 +8,7 @@ import { C } from '../../src/lib/theme';
 
 type Tab = 'privacy' | 'terms';
 
-const LAST_UPDATED = '7 June 2026';
+const LAST_UPDATED = '11 June 2026';
 const CONTACT_EMAIL = 'hello@pitchapp.net';
 const COMPANY_NAME = 'Nila';
 
@@ -131,7 +131,7 @@ function TermsOfService() {
           'You must provide accurate information when creating your account.',
           'You are responsible for all activity that occurs under your account.',
           'You must be at least 16 years old to use Pitch.',
-          'Admin access is granted via invite only. You must not share or misuse invite codes.',
+          'Player accounts are created in the app. Organiser accounts are created on the Pitch website and come with tools to create and manage games.',
         ]} />
       </Section>
 
@@ -142,7 +142,10 @@ function TermsOfService() {
           'Harass, impersonate, or harm other users.',
           'Attempt to gain unauthorised access to other users\' data.',
           'Abuse the waitlist or registration system.',
+          'Submit content (such as names or game titles) that is offensive, abusive, or objectionable.',
         ]} />
+        {'\n'}We remove content and suspend accounts that violate these terms. To report a
+        user or content, email us at {CONTACT_EMAIL}.
       </Section>
 
       <Section title="Disclaimer of warranties">
