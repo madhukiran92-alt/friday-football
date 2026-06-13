@@ -104,6 +104,12 @@ export default function LoginScreen() {
               </LinearGradient>
             </TouchableOpacity>
 
+            {!isSignUp && (
+              <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')} style={styles.forgot} activeOpacity={0.6}>
+                <Text style={styles.forgotText}>Forgot password?</Text>
+              </TouchableOpacity>
+            )}
+
             <TouchableOpacity onPress={() => setIsSignUp(!isSignUp)} style={styles.toggle} activeOpacity={0.6}>
               <Text style={styles.toggleText}>
                 {isSignUp ? 'Already have an account?  ' : "Don't have an account?  "}
@@ -160,6 +166,9 @@ const styles = StyleSheet.create({
   btn: { borderRadius: C.rMd, paddingVertical: 16, alignItems: 'center' },
   btnDisabled: { opacity: 0.5 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: '700', letterSpacing: 0.1 },
+
+  forgot: { marginTop: 14, alignItems: 'center' },
+  forgotText: { fontSize: 14, color: C.greenSoft, fontWeight: '600' },
 
   toggle: { marginTop: 18, alignItems: 'center' },
   toggleText: { fontSize: 14, color: C.muted },

@@ -132,6 +132,12 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Change password */}
+          <TouchableOpacity style={styles.rowBtn} onPress={() => router.push('/(app)/change-password')} activeOpacity={0.7}>
+            <Text style={styles.rowBtnText}>Change Password</Text>
+            <Text style={styles.rowBtnChevron}>›</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.signOutBtn} onPress={signOut} activeOpacity={0.75}>
             <Text style={styles.signOutText}>Sign Out</Text>
           </TouchableOpacity>
@@ -223,6 +229,16 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.5 },
   saveBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+
+  rowBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginHorizontal: 16, marginBottom: 12,
+    backgroundColor: C.surface, borderRadius: C.rMd,
+    paddingVertical: 15, paddingHorizontal: 16,
+    ...C.shadow,
+  },
+  rowBtnText: { color: C.ink, fontSize: 15, fontWeight: '700' },
+  rowBtnChevron: { color: C.subtle, fontSize: 22, fontWeight: '400' },
 
   signOutBtn: {
     marginHorizontal: 16, borderRadius: C.rMd, paddingVertical: 14,
