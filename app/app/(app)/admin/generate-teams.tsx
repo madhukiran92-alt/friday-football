@@ -25,7 +25,8 @@ export default function GenerateTeamsScreen() {
       const { data } = await supabase
         .from('games')
         .select('*')
-        .in('status', ['open', 'closed'])
+        // include 'completed' so already-published teams can be re-generated
+        .in('status', ['open', 'closed', 'completed'])
         .order('scheduled_at', { ascending: false });
       const list = data ?? [];
       setGames(list);
@@ -118,8 +119,13 @@ export default function GenerateTeamsScreen() {
           style={[styles.gameRow, selectedGame?.id === g.id && styles.gameRowSelected]}
           onPress={() => selectGame(g)}
         >
-          <Text style={styles.gameName}>{g.title}</Text>
-          <Text style={styles.gameMeta}>{new Date(g.scheduled_at).toLocaleDateString()}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.gameName}>{g.title}</Text>
+            <Text style={styles.gameMeta}>{new Date(g.scheduled_at).toLocaleDateString()}</Text>
+          </View>
+          {g.status === 'completed' && (
+            <View style={styles.publishedTag}><Text style={styles.publishedTagText}>Teams published</Text></View>
+          )}
         </TouchableOpacity>
       ))}
 
@@ -129,11 +135,11 @@ export default function GenerateTeamsScreen() {
             {confirmed.length} confirmed player{confirmed.length !== 1 ? 's' : ''}
           </Text>
 
-          <TouchableOpacity style={styles.button} onPress={previewTeams}>
-            <Text style={styles.buttonText}>Shuffle Teams</Text>
-          </TouchableOpacity>
-
-          {teams.length > 0 && (
+          {teams.length === 0 ? (
+            <TouchableOpacity style={[styles.button, styles.buttonPrimary]} onPress={previewTeams}>
+              <Text style={styles.buttonPrimaryText}>🎲  Generate Teams</Text>
+            </TouchableOpacity>
+          ) : (
             <>
               {teams.map((team, i) => (
                 <View key={i} style={[styles.teamCard, { backgroundColor: teamColors[i % teamColors.length] }]}>
@@ -146,12 +152,20 @@ export default function GenerateTeamsScreen() {
                 </View>
               ))}
 
+              <Text style={styles.reshuffleHint}>
+                Not happy with the split? Shuffle again — nothing is saved until you publish.
+              </Text>
+
+              <TouchableOpacity style={[styles.button, styles.buttonShuffle]} onPress={previewTeams} disabled={generating}>
+                <Text style={styles.buttonShuffleText}>🎲  Shuffle Again</Text>
+              </TouchableOpacity>
+
               <TouchableOpacity
-                style={[styles.button, styles.buttonSave, generating && styles.buttonDisabled]}
+                style={[styles.button, styles.buttonPrimary, generating && styles.buttonDisabled]}
                 onPress={saveTeams}
                 disabled={generating}
               >
-                <Text style={styles.buttonText}>{generating ? 'Saving...' : 'Save & Publish Teams'}</Text>
+                <Text style={styles.buttonPrimaryText}>{generating ? 'Saving…' : 'Save & Publish Teams'}</Text>
               </TouchableOpacity>
             </>
           )}
@@ -168,14 +182,21 @@ const styles = StyleSheet.create({
   back: { fontSize: 16, color: C.greenSoft },
   title: { fontSize: 20, fontWeight: '800', color: C.ink },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: C.inkSoft, marginHorizontal: 16, marginTop: 20, marginBottom: 8 },
-  gameRow: { marginHorizontal: 16, marginBottom: 6, backgroundColor: C.surface, borderRadius: 10, padding: 14, borderWidth: 1.5, borderColor: 'transparent' },
+  gameRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 16, marginBottom: 6, backgroundColor: C.surface, borderRadius: 10, padding: 14, borderWidth: 1.5, borderColor: 'transparent' },
   gameRowSelected: { borderColor: C.greenSoft },
   gameName: { fontSize: 15, fontWeight: '600', color: C.ink },
   gameMeta: { fontSize: 13, color: C.muted, marginTop: 2 },
-  button: { margin: 16, backgroundColor: C.surface2, borderRadius: 12, padding: 16, alignItems: 'center' },
-  buttonSave: { backgroundColor: C.green },
+  publishedTag: { backgroundColor: C.indigoLight, borderRadius: C.rFull, paddingHorizontal: 10, paddingVertical: 4 },
+  publishedTagText: { fontSize: 11, fontWeight: '700', color: C.indigo },
+
+  button: { marginHorizontal: 16, marginTop: 8, borderRadius: 12, padding: 16, alignItems: 'center' },
+  buttonPrimary: { backgroundColor: C.green, ...C.glowSoft },
+  buttonPrimaryText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  buttonShuffle: { backgroundColor: C.surface, borderWidth: 1.5, borderColor: C.green },
+  buttonShuffleText: { color: C.greenDeep, fontSize: 16, fontWeight: '700' },
   buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  reshuffleHint: { fontSize: 13, color: C.muted, marginHorizontal: 16, marginTop: 4, marginBottom: 2, textAlign: 'center', lineHeight: 18 },
+
   teamCard: { margin: 16, marginBottom: 8, borderRadius: 16, padding: 20 },
   teamName: { fontSize: 17, fontWeight: '800', marginBottom: 10 },
   memberName: { fontSize: 15, color: C.ink, marginBottom: 4 },
